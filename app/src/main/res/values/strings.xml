@@ -1,0 +1,39 @@
+<resources>
+    <string name="app_name">RedAppDriver</string>
+    <string name="start_page_background_description">Start Page Background</string>
+    <string name="start_page_logo">Start Page logo</string>
+    <string name="label_or">OR</string>
+    <string name="button_sign_in_text">Sign In</string>
+    <string name="button_sign_up_text">Sign Up</string>
+    <string name="label_email_address">Email Address</string>
+    <string name="label_password">Password</string>
+    <string name="label_forgot_password">Forgot Password?</string>
+    <string name="label_first_name">First Name</string>
+    <string name="label_last_name">Last Name</string>
+    <string name="label_confirm_password">Confirm Password</string>
+    <string name="label_country_code">country code</string>
+    <string name="label_phone_number">Phone Number</string>
+    <string name="default_country_code">+65</string>
+    <string name="label_type_of_services">Type of Services</string>
+    <string name="tnc_compliance_top_line">By Registering, I have read and agreed to the</string>
+    <string name="label_terms_and_conditions">Terms and Conditions</string>
+    <string name="tnc_compliance_line_two">and the</string>
+    <string name="label_privacy_policy">Privacy Policy</string>
+    <string name="label_forgot_password_two">Forgot Password</string>
+    <string name="label_get_email">Get Email</string>
+    <string name="forget_password_reminder">*An email will be sent to you once you have submitted! Do Check your spam if you think you\'ve missed out!</string>
+    <string name="navbar_home">Home</string>
+    <string name="navbar_wallet">Wallet</string>
+    <string name="navbar_job_history">Job History</string>
+    <string name="navbar_settings">Settings</string>
+    <string name="navbar_faq">FAQ</string>
+    <string name="navbar_support">Support</string>
+    <string name="navbar_logout">Log Out</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="app_logo_name">Extra Mile</string>
+    <string name="labelwallet_icon">Wallet Icon</string>
+    <string name="share">Share</string>
+    <string name="star_icon">star icon</string>
+</resources>

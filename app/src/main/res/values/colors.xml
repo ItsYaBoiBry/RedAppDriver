@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#000000</color>
+    <color name="colorPrimaryDark">#000000</color>
+    <color name="colorAccent">#FFFFFF</color>
+
+    <color name="white">#FFFFFF</color>
+    <color name="black">#000000</color>
+    <color name="lightgrey">#D8D8D8</color>
+    <color name="darkgrey">#A8A8A8</color>
+
+    <color name="pinkred">#CC5051</color>
+    <color name="swampgreen">#6E8F00</color>
+
+    <color name="swampgreenbutton">@color/swampgreen</color>
+    <color name="swampgreenbuttonpressed">#506E8F00</color>
+    <color name="pinkredbutton">@color/pinkred</color>
+    <color name="pinkredbuttonpressed">#50CC5051</color>
+
+    <color name="loginsignuptedittext">#3B3B3B</color>
+    <color name="loginsignuptedittextfontcolor">@color/lightgrey</color>
+
+    <color name="fontcolorwhite">@color/white</color>
+    <color name="fontcolorblack">@color/black</color>
+</resources>

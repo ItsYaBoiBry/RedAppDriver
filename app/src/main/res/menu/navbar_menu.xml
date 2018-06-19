@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:id="@+id/home" android:title="@string/navbar_home"/>
+    <item android:id="@+id/wallet" android:title="@string/navbar_wallet"/>
+    <item android:id="@+id/job_history" android:title="@string/navbar_job_history"/>
+    <item android:id="@+id/settings" android:title="@string/navbar_settings"/>
+    <item android:id="@+id/faq" android:title="@string/navbar_faq"/>
+    <item android:id="@+id/support" android:title="@string/navbar_support"/>
+    <item android:id="@+id/logout" android:title="@string/navbar_logout"/>
+</menu>
