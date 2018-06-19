@@ -36,4 +36,18 @@
     <string name="labelwallet_icon">Wallet Icon</string>
     <string name="share">Share</string>
     <string name="star_icon">star icon</string>
+    <string name="from">From</string>
+    <string name="to">To</string>
+    <string name="today">Today</string>
+    <string name="past_week">Past Week</string>
+    <string name="leave_us_a_feedback">Leave us a feedback</string>
+    <string name="start_typing_here">Start Typing Here</string>
+    <string name="call">Call</string>
+    <string name="submit">Submit</string>
+    <string name="or">Or</string>
+    <string name="terms_and_conditions">Terms and Conditions</string>
+    <string name="privacy_policy">Privacy Policy</string>
+    <string name="click_here_to_go_back_to_map">Click here to go back to map</string>
+    <string name="trip">Trip</string>
+    <string name="destination">Destination</string>
 </resources>
