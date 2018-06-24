@@ -5,15 +5,18 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
-import android.widget.TextView;
+import android.widget.Button;
+import android.widget.ImageButton;
 
-public class WebView extends AppCompatActivity {
-    TextView title, message;
+public class TripDetail extends AppCompatActivity {
     Toolbar toolbar;
+    ImageButton messageUser, userPhone;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_web_view);
+        setContentView(R.layout.activity_trip_detail);
+        messageUser = findViewById(R.id.messageUser);
+        userPhone = findViewById(R.id.userPhone);
         toolbar = findViewById(R.id.toolbar);
         toolbar.setNavigationOnClickListener(new View.OnClickListener() {
             @Override
@@ -21,11 +24,12 @@ public class WebView extends AppCompatActivity {
                 finish();
             }
         });
-        Intent intent = getIntent();
-        title = findViewById(R.id.title);
-        message = findViewById(R.id.message);
-        title.setText(intent.getStringExtra("title"));
-        message.setText(intent.getStringExtra("message"));
-    }
+        messageUser.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivity(new Intent(TripDetail.this,Messages.class));
+            }
+        });
 
+    }
 }

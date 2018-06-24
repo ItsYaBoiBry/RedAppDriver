@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/white"
+        android:orientation="vertical">
+
+        <ImageButton
+            android:id="@+id/reject"
+            style="@style/Base.Widget.AppCompat.Button.Borderless"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:layout_gravity="end|right|top"
+            android:layout_margin="5dp"
+            android:contentDescription="@string/cancel"
+            android:src="@drawable/ic_close"
+            android:tint="@color/black" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:text="@string/report"
+            android:textSize="20sp" />
+
+        <EditText
+            android:padding="5dp"
+            android:gravity="top"
+            android:hint="@string/start_typing_here_with_dots"
+            android:inputType="textMultiLine"
+            android:id="@+id/message"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="20dp"
+            android:background="@color/lightgrey"
+            android:lines="4" />
+
+        <Button
+            android:id="@+id/accept"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="40dp"
+            android:layout_marginLeft="40dp"
+            android:layout_marginRight="40dp"
+            android:layout_marginStart="40dp"
+            android:background="@color/pinkred"
+            android:gravity="center"
+            android:padding="15dp"
+            android:text="Confirm"
+            android:textColor="@color/white" />
+    </LinearLayout>
+</RelativeLayout>

@@ -12,15 +12,29 @@
         android:orientation="vertical">
 
         <TextView
+            android:gravity="center"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_margin="20dp"
             android:text="@string/leave_us_a_feedback"
             android:textAlignment="center"
             android:textColor="@color/white"/>
+        <TextView
+            android:gravity="center"
+            android:id="@+id/feedbackTitle"
+            android:layout_margin="10dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/white"
+            android:padding="5dp"
+            android:hint="@string/select_topic"
+            android:textSize="17sp"
+            android:drawableRight="@drawable/ic_arrow_drop_down"
+            android:drawableEnd="@drawable/ic_arrow_drop_down"
+            android:drawableTint="@color/lightgrey"/>
 
         <EditText
-            android:id="@+id/getFeeback"
+            android:id="@+id/feedbackMessage"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_margin="10dp"

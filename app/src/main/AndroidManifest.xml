@@ -3,6 +3,7 @@
     package="sg.redapp.com.redappdriver">
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.CALL_PHONE" />
 
     <application
         android:allowBackup="true"
@@ -13,7 +14,8 @@
         android:theme="@style/AppTheme">
         <meta-data
             android:name="com.google.android.geo.API_KEY"
-            android:value="AIzaSyAsRHjb3C2oZgX676SbDyK7g0x0GbsTyIo"/>
+            android:value="AIzaSyAsRHjb3C2oZgX676SbDyK7g0x0GbsTyIo" />
+
         <activity
             android:name=".login.ActivityStartPage"
             android:screenOrientation="portrait"
@@ -51,10 +53,6 @@
             android:screenOrientation="portrait"
             android:windowSoftInputMode="stateHidden" />
         <activity
-            android:name=".profile.EditProfile"
-            android:screenOrientation="portrait"
-            android:windowSoftInputMode="stateHidden" />
-        <activity
             android:name=".profile.ViewProfile"
             android:screenOrientation="portrait"
             android:windowSoftInputMode="stateHidden" />
@@ -62,6 +60,9 @@
             android:name=".TripProcess"
             android:screenOrientation="portrait"
             android:windowSoftInputMode="stateHidden" />
+        <activity android:name=".TripDetail" />
+        <activity android:name=".Messages" />
+        <activity android:name=".DropOff"></activity>
     </application>
 
 </manifest>
