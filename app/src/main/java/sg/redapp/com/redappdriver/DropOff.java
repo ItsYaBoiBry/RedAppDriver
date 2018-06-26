@@ -36,7 +36,7 @@ public class DropOff extends AppCompatActivity implements View.OnClickListener{
         final Dialog dialog = new Dialog(DropOff.this);
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
         dialog.setCancelable(false);
-        dialog.setContentView(R.layout.trip_cancel_dialog);
+        dialog.setContentView(R.layout.trip_report_feedback);
         ImageButton reject = dialog.findViewById(R.id.reject);
         EditText message = dialog.findViewById(R.id.message);
         Button accept = dialog.findViewById(R.id.accept);

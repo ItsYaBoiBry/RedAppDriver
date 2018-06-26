@@ -1,5 +1,6 @@
 package sg.redapp.com.redappdriver;
 
+import android.content.Intent;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
@@ -25,6 +26,7 @@ import sg.redapp.com.redappdriver.HomeFragments.Home;
 import sg.redapp.com.redappdriver.HomeFragments.Settings;
 import sg.redapp.com.redappdriver.HomeFragments.Support;
 import sg.redapp.com.redappdriver.HomeFragments.Wallet;
+import sg.redapp.com.redappdriver.login.ActivityStartPage;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -125,6 +127,8 @@ public class MainActivity extends AppCompatActivity {
                         CloseDrawer();
                         return true;
                     case R.id.logout:
+                        startActivity(new Intent(MainActivity.this, ActivityStartPage.class));
+                        finish();
                         return true;
                 }
             return false;
