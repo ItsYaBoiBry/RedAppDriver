@@ -1,9 +1,14 @@
 package sg.redapp.com.redappdriver;
 
 import android.content.Intent;
+import android.location.Location;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v4.content.ContextCompat;
+import android.support.v4.content.PermissionChecker;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBar;
@@ -19,7 +24,22 @@ import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.widget.CompoundButton;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import com.firebase.geofire.GeoFire;
+import com.firebase.geofire.GeoLocation;
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.location.LocationListener;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationServices;
+import com.google.firebase.auth.GoogleAuthProvider;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+
+import java.time.LocalDate;
+
+import sg.redapp.com.redappdriver.Classes.AvailableDriver;
 import sg.redapp.com.redappdriver.HomeFragments.FAQ;
 import sg.redapp.com.redappdriver.HomeFragments.History;
 import sg.redapp.com.redappdriver.HomeFragments.Home;
@@ -29,7 +49,7 @@ import sg.redapp.com.redappdriver.HomeFragments.Wallet;
 import sg.redapp.com.redappdriver.login.ActivityStartPage;
 
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener {
     DrawerLayout drawerLayout;
     FragmentTransaction ft;
     Toolbar toolbar;
@@ -37,25 +57,124 @@ public class MainActivity extends AppCompatActivity {
     TextView onlineStatus;
     SwitchCompat setOnline;
 
+    // TODO: Task 1 - Declare Firebase variables
+    private FirebaseDatabase firebaseDatabase;
+    private DatabaseReference availableDriverListRef;
+
+    private GoogleApiClient mGoogleApiClient;
+    private Location mLocation;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        // TODO: Task 2: Get Firebase database instance and reference
+        firebaseDatabase = FirebaseDatabase.getInstance();
+        availableDriverListRef = firebaseDatabase.getReference("/availableUser");
         configureNavigationDrawer();
         configureToolbar();
         configureSwitch();
         toolbartitle = findViewById(R.id.toolbartitle);
         setTitle(getString(R.string.app_logo_name));
+        Intent intent = getIntent();
+        String uid = intent.getStringExtra("uid");
+        Log.d("uid", "" + uid);
         if (savedInstanceState == null) {
             replacefragment(new Home());
             setTitle(getString(R.string.navbar_home));
         }
+        mGoogleApiClient = new GoogleApiClient.Builder(this)
+                .addConnectionCallbacks(this)
+                .addOnConnectionFailedListener(this)
+                .addApi(LocationServices.API)
+                .build();
+    }
+
+    @Override
+    public void onConnected(@Nullable Bundle bundle) {
+        int permissionCheck_Coarse = ContextCompat.checkSelfPermission(MainActivity.this, android.Manifest.permission.ACCESS_COARSE_LOCATION);
+        int permissionCheck_Fine = ContextCompat.checkSelfPermission(
+                MainActivity.this, android.Manifest.permission.ACCESS_FINE_LOCATION);
+
+
+        if (permissionCheck_Coarse == PermissionChecker.PERMISSION_GRANTED
+                ||  permissionCheck_Fine  == PermissionChecker.PERMISSION_GRANTED){
+            mLocation = LocationServices.FusedLocationApi.getLastLocation(
+                    mGoogleApiClient);
+
+            LocationRequest mLocationRequest = LocationRequest.create();
+            mLocationRequest.setPriority(LocationRequest
+                    .PRIORITY_BALANCED_POWER_ACCURACY);
+            mLocationRequest.setInterval(10000);
+            mLocationRequest.setFastestInterval(5000);
+            mLocationRequest.setSmallestDisplacement(100);
+            LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient,
+                    mLocationRequest, (LocationListener) this);
+
+        } else {
+            mLocation = null;
+            Toast.makeText(MainActivity.this,
+                    "Permission not granted to retrieve location info",
+                    Toast.LENGTH_SHORT).show();
+            ActivityCompat.requestPermissions(MainActivity.this,new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION},2);
+        }
+
+        if (mLocation != null) {
+            Toast.makeText(this, "Lat : " + mLocation.getLatitude() +
+                            " Lng : " + mLocation.getLongitude(),
+                    Toast.LENGTH_SHORT).show();
+            Log.d("tag", "onConnected lan long: " +  mLocation.getLatitude());
+        } else {
+            Toast.makeText(this, "Location not Detected",
+                    Toast.LENGTH_SHORT).show();
+            Log.d("tag", "Location not Detected ");
+        }
+    }
+
+
+    @Override
+    public void onLocationChanged(Location location) {
+        //the detected location is given by the variable location in the signature
+
+        Toast.makeText(this, "Lat : " + location.getLatitude() + " Lng : " +
+                location.getLongitude(), Toast.LENGTH_SHORT).show();
+        Log.d("tag", "onConnected lan long: " +  location.getLatitude());
+        Intent intent = getIntent();
+        String uid = intent.getStringExtra("uid");
+        DatabaseReference ref = FirebaseDatabase.getInstance().getReference("/availableUser");
+        GeoFire geofire = new GeoFire(ref);
+        geofire.setLocation(uid,new GeoLocation(location.getLatitude(), location.getLongitude()));
+    }
+
+    @Override
+    public void onConnectionSuspended(int i) {
+
+
+    }
+
+    @Override
+    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+
     }
 
     @Override
     protected void onStart() {
         super.onStart();
+        mGoogleApiClient.connect();
 
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        if(mGoogleApiClient.isConnected()){
+            mGoogleApiClient.disconnect();
+        }
+        Intent intent = getIntent();
+        String uid = intent.getStringExtra("uid");
+        DatabaseReference ref = FirebaseDatabase.getInstance().getReference("/availableUser");
+        GeoFire geofire = new GeoFire(ref);
+        geofire.removeLocation(uid);
     }
 
     private void configureSwitch(){
@@ -78,10 +197,18 @@ public class MainActivity extends AppCompatActivity {
                     onlineStatus.setText("online\u2022 ");
                     onlineStatus.setTextColor(getResources().getColor(R.color.swampgreen));
                     Log.e("Online Status: ","Online");
+                    Intent intent = getIntent();
+                    String uid = intent.getStringExtra("uid");
+                    AvailableDriver availableDriver = new AvailableDriver(mLocation.getLatitude(),mLocation.getLongitude());
+                    availableDriverListRef.child(uid).setValue(availableDriver);
+//                    Log.d("receive data", "" + driverListRef.getKey());
                 }else{
                     onlineStatus.setText("offline\u2022 ");
                     onlineStatus.setTextColor(getResources().getColor(R.color.darkgrey));
                     Log.e("Online Status: ","Offline");
+                    Intent intent = getIntent();
+                    String uid = intent.getStringExtra("uid");
+                    availableDriverListRef.child(uid).removeValue();
                 }
             }
         });
@@ -183,4 +310,3 @@ public class MainActivity extends AppCompatActivity {
         toolbartitle.setText(title);
     }
 }
- 
