@@ -1,9 +1,13 @@
 package sg.redapp.com.redappdriver;
 
+import android.Manifest;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.location.Location;
+import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.design.widget.NavigationView;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
@@ -13,31 +17,26 @@ import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.support.v7.widget.SwitchCompat;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
-import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
-
-import android.support.design.widget.NavigationView;
 import android.widget.CompoundButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.firebase.geofire.GeoFire;
-import com.firebase.geofire.GeoLocation;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
-import com.google.firebase.auth.GoogleAuthProvider;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-
-import java.time.LocalDate;
+import com.google.firebase.database.ValueEventListener;
 
 import sg.redapp.com.redappdriver.Classes.AvailableDriver;
 import sg.redapp.com.redappdriver.HomeFragments.FAQ;
@@ -57,8 +56,12 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     TextView onlineStatus;
     SwitchCompat setOnline;
 
+    double currentLatitude;
+    double currentLongitude;
+    private FirebaseAuth mAuth;
     // TODO: Task 1 - Declare Firebase variables
     private FirebaseDatabase firebaseDatabase;
+    private FirebaseAuth firebaseAuth;
     private DatabaseReference availableDriverListRef;
 
     private GoogleApiClient mGoogleApiClient;
@@ -69,8 +72,39 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         // TODO: Task 2: Get Firebase database instance and reference
+        checkpermission();
+        mAuth = FirebaseAuth.getInstance();
+
+        FirebaseUser user = mAuth.getCurrentUser();
+        FirebaseDatabase database = FirebaseDatabase.getInstance();
+        DatabaseReference myRef = database.getReference("user");
+        DatabaseReference userData = myRef.child("driver");
+        assert user != null;
+        DatabaseReference userid = userData.child(user.getUid());
+        DatabaseReference onlineStatus = userid.child("online_status");
+
+        onlineStatus.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                Boolean value = dataSnapshot.getValue(Boolean.class);
+                if (value) {
+                    setOnline.setChecked(true);
+
+
+                } else {
+                    setOnline.setChecked(false);
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        });
+
         firebaseDatabase = FirebaseDatabase.getInstance();
-        availableDriverListRef = firebaseDatabase.getReference("/availableUser");
+        firebaseAuth = FirebaseAuth.getInstance();
+        availableDriverListRef = firebaseDatabase.getReference("availableDriver");
         configureNavigationDrawer();
         configureToolbar();
         configureSwitch();
@@ -92,43 +126,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
 
     @Override
     public void onConnected(@Nullable Bundle bundle) {
-        int permissionCheck_Coarse = ContextCompat.checkSelfPermission(MainActivity.this, android.Manifest.permission.ACCESS_COARSE_LOCATION);
-        int permissionCheck_Fine = ContextCompat.checkSelfPermission(
-                MainActivity.this, android.Manifest.permission.ACCESS_FINE_LOCATION);
 
-
-        if (permissionCheck_Coarse == PermissionChecker.PERMISSION_GRANTED
-                ||  permissionCheck_Fine  == PermissionChecker.PERMISSION_GRANTED){
-            mLocation = LocationServices.FusedLocationApi.getLastLocation(
-                    mGoogleApiClient);
-
-            LocationRequest mLocationRequest = LocationRequest.create();
-            mLocationRequest.setPriority(LocationRequest
-                    .PRIORITY_BALANCED_POWER_ACCURACY);
-            mLocationRequest.setInterval(10000);
-            mLocationRequest.setFastestInterval(5000);
-            mLocationRequest.setSmallestDisplacement(100);
-            LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient,
-                    mLocationRequest, (LocationListener) this);
-
-        } else {
-            mLocation = null;
-            Toast.makeText(MainActivity.this,
-                    "Permission not granted to retrieve location info",
-                    Toast.LENGTH_SHORT).show();
-            ActivityCompat.requestPermissions(MainActivity.this,new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION},2);
-        }
-
-        if (mLocation != null) {
-            Toast.makeText(this, "Lat : " + mLocation.getLatitude() +
-                            " Lng : " + mLocation.getLongitude(),
-                    Toast.LENGTH_SHORT).show();
-            Log.d("tag", "onConnected lan long: " +  mLocation.getLatitude());
-        } else {
-            Toast.makeText(this, "Location not Detected",
-                    Toast.LENGTH_SHORT).show();
-            Log.d("tag", "Location not Detected ");
-        }
     }
 
 
@@ -138,12 +136,22 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
 
         Toast.makeText(this, "Lat : " + location.getLatitude() + " Lng : " +
                 location.getLongitude(), Toast.LENGTH_SHORT).show();
-        Log.d("tag", "onConnected lan long: " +  location.getLatitude());
+        Log.d("tag", "onConnected lan long: " + location.getLatitude());
         Intent intent = getIntent();
         String uid = intent.getStringExtra("uid");
-        DatabaseReference ref = FirebaseDatabase.getInstance().getReference("/availableUser");
-        GeoFire geofire = new GeoFire(ref);
-        geofire.setLocation(uid,new GeoLocation(location.getLatitude(), location.getLongitude()));
+        DatabaseReference availableDriverRef = FirebaseDatabase.getInstance().getReference("availableDriver");
+
+//        GeoFire geofire = new GeoFire(ref);
+//        geofire.setLocation(uid, new GeoLocation(location.getLatitude(), location.getLongitude()), new GeoFire.CompletionListener() {
+//            @Override
+//            public void onComplete(String key, DatabaseError error) {
+//
+//            }
+//        });
+//        currentLatitude = location.getLatitude();
+//        currentLongitude = location.getLongitude();
+        availableDriverRef.child(uid).child("latitude").setValue(location.getLatitude());
+        availableDriverRef.child(uid).child("longitude").setValue(location.getLongitude());
     }
 
     @Override
@@ -167,53 +175,100 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     @Override
     protected void onStop() {
         super.onStop();
-        if(mGoogleApiClient.isConnected()){
+        if (mGoogleApiClient.isConnected()) {
             mGoogleApiClient.disconnect();
         }
         Intent intent = getIntent();
         String uid = intent.getStringExtra("uid");
-        DatabaseReference ref = FirebaseDatabase.getInstance().getReference("/availableUser");
-        GeoFire geofire = new GeoFire(ref);
-        geofire.removeLocation(uid);
+        DatabaseReference ref = FirebaseDatabase.getInstance().getReference("availableDriver");
+//        GeoFire geofire = new GeoFire(ref);
+//        geofire.removeLocation(uid);
     }
 
-    private void configureSwitch(){
+    private void configureSwitch() {
         onlineStatus = findViewById(R.id.onlineStatus);
         setOnline = findViewById(R.id.setOnline);
         setOnline.setChecked(false);
-        if(setOnline.isChecked()){
+        if (setOnline.isChecked()) {
             onlineStatus.setText("online\u2022 ");
             onlineStatus.setTextColor(getResources().getColor(R.color.swampgreen));
-            Log.e("Online Status: ","Online");
-        }else{
+            Intent intent = getIntent();
+            String uid = intent.getStringExtra("uid");
+//            availableDriverListRef.child(uid).setValue(availableDriver);
+            DatabaseReference availableDriverRef = FirebaseDatabase.getInstance().getReference("availableDriver");
+            availableDriverRef.child(uid).child("latitude").setValue(mLocation.getLatitude());
+            availableDriverRef.child(uid).child("longitude").setValue(mLocation.getLongitude());
+            FirebaseUser user = mAuth.getCurrentUser();
+            FirebaseDatabase database = FirebaseDatabase.getInstance();
+            DatabaseReference myRef = database.getReference("user");
+            DatabaseReference userData = myRef.child("driver");
+            assert user != null;
+            DatabaseReference userid = userData.child(user.getUid());
+            DatabaseReference onlineStatus = userid.child("online_status");
+            onlineStatus.setValue(true);
+
+            Log.e("Online Status: ", "Online");
+        } else {
             onlineStatus.setText("offline\u2022 ");
             onlineStatus.setTextColor(getResources().getColor(R.color.darkgrey));
-            Log.e("Online Status: ","Offline\u2022 ");
+            Log.e("Online Status: ", "Offline\u2022 ");
+            FirebaseUser user = mAuth.getCurrentUser();
+            FirebaseDatabase database = FirebaseDatabase.getInstance();
+            DatabaseReference myRef = database.getReference("user");
+            DatabaseReference userData = myRef.child("driver");
+            assert user != null;
+            DatabaseReference userid = userData.child(user.getUid());
+            DatabaseReference onlineStatus = userid.child("online_status");
+            onlineStatus.setValue(false);
         }
         setOnline.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if(setOnline.isChecked()){
+                if (setOnline.isChecked()) {
                     onlineStatus.setText("online\u2022 ");
                     onlineStatus.setTextColor(getResources().getColor(R.color.swampgreen));
-                    Log.e("Online Status: ","Online");
+                    Log.e("Online Status: ", "Online");
+                    startLocationService();
                     Intent intent = getIntent();
                     String uid = intent.getStringExtra("uid");
-                    AvailableDriver availableDriver = new AvailableDriver(mLocation.getLatitude(),mLocation.getLongitude());
-                    availableDriverListRef.child(uid).setValue(availableDriver);
-//                    Log.d("receive data", "" + driverListRef.getKey());
-                }else{
+                    AvailableDriver availableDriver = new AvailableDriver(mLocation.getLatitude(), mLocation.getLongitude());
+
+                    DatabaseReference availableDriverRef = FirebaseDatabase.getInstance().getReference("availableDriver");
+
+                    availableDriverRef.child(uid).child("latitude").setValue(mLocation.getLatitude());
+                    availableDriverRef.child(uid).child("longitude").setValue(mLocation.getLongitude());
+
+
+                    FirebaseUser user = mAuth.getCurrentUser();
+                    FirebaseDatabase database = FirebaseDatabase.getInstance();
+                    DatabaseReference myRef = database.getReference("user");
+                    DatabaseReference userData = myRef.child("driver");
+                    assert user != null;
+                    DatabaseReference userid = userData.child(user.getUid());
+                    DatabaseReference onlineStatus = userid.child("online_status");
+                    onlineStatus.setValue(true);
+
+
+                } else {
                     onlineStatus.setText("offline\u2022 ");
                     onlineStatus.setTextColor(getResources().getColor(R.color.darkgrey));
-                    Log.e("Online Status: ","Offline");
+                    Log.e("Online Status: ", "Offline");
                     Intent intent = getIntent();
                     String uid = intent.getStringExtra("uid");
                     availableDriverListRef.child(uid).removeValue();
+                    FirebaseUser user = mAuth.getCurrentUser();
+                    FirebaseDatabase database = FirebaseDatabase.getInstance();
+                    DatabaseReference myRef = database.getReference("user");
+                    DatabaseReference userData = myRef.child("driver");
+                    assert user != null;
+                    DatabaseReference userid = userData.child(user.getUid());
+                    DatabaseReference onlineStatus = userid.child("online_status");
+                    onlineStatus.setValue(false);
                 }
             }
         });
-
     }
+
     private void configureNavigationDrawer() {
         drawerLayout = findViewById(R.id.drawer_layout);
         NavigationView navView = findViewById(R.id.left_drawer);
@@ -222,7 +277,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
             @Override
             public boolean onNavigationItemSelected(@NonNull MenuItem item) {
                 int itemId = item.getItemId();
-                switch (itemId){
+                switch (itemId) {
                     case R.id.home:
                         replacefragment(new Home());
                         setTitle("Home");
@@ -254,11 +309,18 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                         CloseDrawer();
                         return true;
                     case R.id.logout:
+                        mAuth = FirebaseAuth.getInstance();
+
+                        FirebaseUser user = mAuth.getCurrentUser();
+                        assert user != null;
+                        availableDriverListRef.child(user.getUid()).removeValue();
+                        firebaseAuth.signOut();
                         startActivity(new Intent(MainActivity.this, ActivityStartPage.class));
+
                         finish();
                         return true;
                 }
-            return false;
+                return false;
             }
         });
 //        navView.setNavigationItemSelectedListener(menuItem -> {
@@ -267,6 +329,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
 //        });
 
     }
+
     private void configureToolbar() {
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -276,6 +339,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         actionbar.setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setDisplayShowTitleEnabled(false);
     }
+
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int itemId = item.getItemId();
@@ -293,6 +357,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         }
         return false;
     }
+
     public void replacefragment(Fragment fragment) {
         ft = getSupportFragmentManager().beginTransaction();
         ft.replace(R.id.content, fragment);
@@ -300,13 +365,81 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         // Complete the changes added above
         ft.commit();
     }
+
     public void CloseDrawer() {
         drawerLayout.closeDrawer(GravityCompat.START);
     }
+
     public void OpenDrawer() {
         drawerLayout.openDrawer(GravityCompat.START);
     }
-    public void setTitle(String title){
+
+    public void setTitle(String title) {
         toolbartitle.setText(title);
+    }
+
+    public void checkpermission() {
+        int permissionCheck_Coarse = ContextCompat.checkSelfPermission(MainActivity.this, android.Manifest.permission.ACCESS_COARSE_LOCATION);
+        int permissionCheck_Fine = ContextCompat.checkSelfPermission(
+                MainActivity.this, android.Manifest.permission.ACCESS_FINE_LOCATION);
+
+        if (permissionCheck_Coarse == PermissionChecker.PERMISSION_GRANTED
+                || permissionCheck_Fine == PermissionChecker.PERMISSION_GRANTED) {
+
+
+        } else {
+            mLocation = null;
+            Toast.makeText(MainActivity.this,
+                    "Permission not granted to retrieve location info",
+                    Toast.LENGTH_SHORT).show();
+            ActivityCompat.requestPermissions(MainActivity.this, new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION}, 2);
+        }
+    }
+
+    public void startLocationService() {
+
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            return;
+        }
+        mLocation = LocationServices.FusedLocationApi.getLastLocation(
+                mGoogleApiClient);
+
+        LocationRequest mLocationRequest = LocationRequest.create();
+        mLocationRequest.setPriority(LocationRequest
+                .PRIORITY_BALANCED_POWER_ACCURACY);
+        mLocationRequest.setInterval(10000);
+        mLocationRequest.setFastestInterval(5000);
+        mLocationRequest.setSmallestDisplacement(100);
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            return;
+        }
+        LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient,
+                mLocationRequest, this);
+
+
+        if (mLocation != null) {
+            Toast.makeText(this, "Lat : " + mLocation.getLatitude() +
+                            " Lng : " + mLocation.getLongitude(),
+                    Toast.LENGTH_SHORT).show();
+            Log.d("tag", "onConnected lan long: " + mLocation.getLatitude());
+        } else {
+            Toast.makeText(this, "Location not Detected",
+                    Toast.LENGTH_SHORT).show();
+            Log.d("tag", "Location not Detected ");
+        }
     }
 }

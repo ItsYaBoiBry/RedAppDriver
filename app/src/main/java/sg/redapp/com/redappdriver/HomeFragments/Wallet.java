@@ -2,12 +2,21 @@ package sg.redapp.com.redappdriver.HomeFragments;
 
 
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
 
@@ -21,6 +30,7 @@ import static android.content.Context.LAYOUT_INFLATER_SERVICE;
 public class Wallet extends Fragment {
 TextView credit, date, amount;
 LinearLayout transactionhistory;
+    private FirebaseAuth mAuth;
 
     public Wallet() {
         // Required empty public constructor
@@ -33,7 +43,23 @@ LinearLayout transactionhistory;
         View view = inflater.inflate(R.layout.fragment_wallet, container, false);
         credit = view.findViewById(R.id.credit);
         transactionhistory = view.findViewById(R.id.transactionhistory);
-        credit.setText("$2000.00");
+        mAuth = FirebaseAuth.getInstance();
+        FirebaseUser user = mAuth.getCurrentUser();
+        assert user != null;
+        DatabaseReference amount = FirebaseDatabase.getInstance().getReference("wallet").child(user.getUid()).child("value");
+        amount.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                Double value = dataSnapshot.getValue(Double.class);
+                credit.setText(String.valueOf(value));
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        });
+
 
         ArrayList<ArrayList<String>> transactions = new ArrayList<>();
         ArrayList<String> transaction1 = new ArrayList<>();

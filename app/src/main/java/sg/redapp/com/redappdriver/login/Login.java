@@ -1,15 +1,12 @@
 package sg.redapp.com.redappdriver.login;
 
-import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.support.annotation.NonNull;
-import android.support.v4.widget.ContentLoadingProgressBar;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.text.TextUtils;
 import android.util.Log;
 import android.util.Patterns;
 import android.view.View;
@@ -22,11 +19,7 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
-
-import org.w3c.dom.Text;
-
-import java.nio.charset.MalformedInputException;
-import java.util.Set;
+import com.google.firebase.auth.FirebaseUser;
 
 import sg.redapp.com.redappdriver.MainActivity;
 import sg.redapp.com.redappdriver.R;
@@ -40,6 +33,7 @@ public class Login extends AppCompatActivity {
     SharedPreferences sharedPreferences;
     Context context = Login.this;
     private FirebaseAuth firebaseAuth;
+    private FirebaseAuth.AuthStateListener mAuthListener;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,14 +45,29 @@ public class Login extends AppCompatActivity {
         getEmail = findViewById(R.id.email);
         getPassword = findViewById(R.id.password);
         forgotPassword = findViewById(R.id.forgotpassword);
-        getEmail.setText("bryanlow987@gmail.com");
-        getPassword.setText("Bryan987");
+        getEmail.setText("ruixian@gmail.com");
+        getPassword.setText("password");
         forgotPassword.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 startActivity(new Intent(Login.this,ForgetPassword.class));
             }
         });
+
+        mAuthListener = new FirebaseAuth.AuthStateListener() {
+            @Override
+            public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
+                FirebaseUser user = firebaseAuth.getCurrentUser();
+                if (user != null) {
+                    // User is signed in
+                    Log.d("tag", "onAuthStateChanged:signed_in:" + user.getUid());
+                } else {
+                    // User is signed out
+                    Log.d("tag", "onAuthStateChanged:signed_out");
+                }
+            }
+        };
+
 
         SetupToolbar();
         login = findViewById(R.id.signin);
@@ -103,4 +112,5 @@ public class Login extends AppCompatActivity {
             }
         });
     }
+
 }

@@ -3,11 +3,10 @@ package sg.redapp.com.redappdriver.login;
 import android.app.AlertDialog;
 import android.content.Intent;
 import android.os.Build;
-import android.provider.ContactsContract;
+import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.RequiresApi;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.View;
@@ -28,7 +27,6 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
-import java.util.ArrayList;
 import java.util.Objects;
 
 import sg.redapp.com.redappdriver.Classes.API;
@@ -171,6 +169,11 @@ public class SignUp extends AppCompatActivity {
                             DatabaseReference onlineStatus = userid.child("online_status");
                             DatabaseReference inProgress = userid.child("in_progress");
 
+                            DatabaseReference setWallet = database.getReference("wallet");
+                            DatabaseReference setWalletUserId = setWallet.child(user.getUid());
+                            DatabaseReference setWalletAmount = setWalletUserId.child("value");
+                            setWalletAmount.setValue(100.00);
+
                             useremail.setValue(user_email);
                             username.setValue(user_name);
                             userCountryCode.setValue(user_country_code);
@@ -192,7 +195,6 @@ public class SignUp extends AppCompatActivity {
                                                 Toast.LENGTH_LONG).show();
                                     }
                                 }
-
                                 @Override
                                 public void onCancelled(@NonNull DatabaseError databaseError) {
                                 }
@@ -206,7 +208,7 @@ public class SignUp extends AppCompatActivity {
                                     Toast.LENGTH_SHORT).show();
 //                                    updateUI(null);
                         }
-                        // ...
+
                     }
                 });
     }
@@ -278,6 +280,4 @@ public class SignUp extends AppCompatActivity {
         }
         return !getfield[0].equals("false") && !getfield[1].equals("false")&& !getfield[2].equals("false")&& !getfield[3].equals("false")&& !getfield[4].equals("false")&& !getfield[5].equals("false")&& !getfield[6].equals("false")&& !getfield[7].equals("false");
     }
-
-
 }
