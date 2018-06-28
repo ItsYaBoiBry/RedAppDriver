@@ -25,6 +25,8 @@ import android.widget.CompoundButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.firebase.geofire.GeoFire;
+import com.firebase.geofire.GeoLocation;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationListener;
@@ -137,21 +139,21 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         Toast.makeText(this, "Lat : " + location.getLatitude() + " Lng : " +
                 location.getLongitude(), Toast.LENGTH_SHORT).show();
         Log.d("tag", "onConnected lan long: " + location.getLatitude());
-        Intent intent = getIntent();
-        String uid = intent.getStringExtra("uid");
-        DatabaseReference availableDriverRef = FirebaseDatabase.getInstance().getReference("availableDriver");
 
-//        GeoFire geofire = new GeoFire(ref);
-//        geofire.setLocation(uid, new GeoLocation(location.getLatitude(), location.getLongitude()), new GeoFire.CompletionListener() {
-//            @Override
-//            public void onComplete(String key, DatabaseError error) {
-//
-//            }
-//        });
+        DatabaseReference availableDriverRef = FirebaseDatabase.getInstance().getReference("availableDriver");
+        FirebaseUser user = mAuth.getCurrentUser();
+        GeoFire geofire = new GeoFire(availableDriverListRef);
+        geofire.setLocation(user.getUid(), new GeoLocation(location.getLatitude(), location.getLongitude()), new GeoFire.CompletionListener() {
+            @Override
+            public void onComplete(String key, DatabaseError error) {
+
+            }
+        });
 //        currentLatitude = location.getLatitude();
 //        currentLongitude = location.getLongitude();
-        availableDriverRef.child(uid).child("latitude").setValue(location.getLatitude());
-        availableDriverRef.child(uid).child("longitude").setValue(location.getLongitude());
+
+//        availableDriverRef.child(user.getUid()).child("latitude").setValue(location.getLatitude());
+//        availableDriverRef.child(user.getUid()).child("longitude").setValue(location.getLongitude());
     }
 
     @Override
@@ -195,10 +197,18 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
             Intent intent = getIntent();
             String uid = intent.getStringExtra("uid");
 //            availableDriverListRef.child(uid).setValue(availableDriver);
+//            DatabaseReference availableDriverRef = FirebaseDatabase.getInstance().getReference("availableDriver");
+//            availableDriverRef.child(uid).child("latitude").setValue(mLocation.getLatitude());
+//            availableDriverRef.child(uid).child("longitude").setValue(mLocation.getLongitude());
             DatabaseReference availableDriverRef = FirebaseDatabase.getInstance().getReference("availableDriver");
-            availableDriverRef.child(uid).child("latitude").setValue(mLocation.getLatitude());
-            availableDriverRef.child(uid).child("longitude").setValue(mLocation.getLongitude());
             FirebaseUser user = mAuth.getCurrentUser();
+            GeoFire geofire = new GeoFire(availableDriverListRef);
+            geofire.setLocation(user.getUid(), new GeoLocation(mLocation.getLatitude(), mLocation.getLongitude()), new GeoFire.CompletionListener() {
+                @Override
+                public void onComplete(String key, DatabaseError error) {
+
+                }
+            });
             FirebaseDatabase database = FirebaseDatabase.getInstance();
             DatabaseReference myRef = database.getReference("user");
             DatabaseReference userData = myRef.child("driver");
