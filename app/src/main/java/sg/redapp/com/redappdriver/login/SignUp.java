@@ -1,6 +1,7 @@
 package sg.redapp.com.redappdriver.login;
 
 import android.app.AlertDialog;
+import android.app.Dialog;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
@@ -10,7 +11,9 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.View;
+import android.view.Window;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -27,6 +30,7 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import java.util.ArrayList;
 import java.util.Objects;
 
 import sg.redapp.com.redappdriver.Classes.API;
@@ -35,12 +39,16 @@ import sg.redapp.com.redappdriver.WebView;
 
 public class SignUp extends AppCompatActivity {
     Toolbar toolbar;
-    EditText getFirstName, getLastName, getEmail, getPassword, getCfmPassword, getPhoneNumber;
+    EditText getFirstName, getLastName, getEmail, getPassword, getCfmPassword, getPhoneNumber, getCarPlateNumber;
     TextView getCountryCode, getTypeOfService, tnc, pp;
+    CheckBox cbTowAccident, cbTowBreakdown, cbTyreManding, cbSpareTyreReplacement,cbBatteryJumpStart,cbBatteryReplacement, cbOthers;
     Button signup;
     private FirebaseAuth mAuth;
     String TAG = "Signup";
     LinearLayout loading;
+    private FirebaseDatabase firebaseDatabase;
+    private FirebaseUser user;
+    ArrayList arrayList = new ArrayList<String>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,6 +57,8 @@ public class SignUp extends AppCompatActivity {
         SetupToolbar();
         loading = findViewById(R.id.loading);
         mAuth = FirebaseAuth.getInstance();
+        firebaseDatabase = FirebaseDatabase.getInstance();
+        user = mAuth.getCurrentUser();
 
         getFirstName = findViewById(R.id.getFirstName);
         getLastName = findViewById(R.id.getLastName);
@@ -58,6 +68,7 @@ public class SignUp extends AppCompatActivity {
         getPhoneNumber = findViewById(R.id.getPhoneNumber);
         getCountryCode = findViewById(R.id.getCountryCode);
         getTypeOfService = findViewById(R.id.getServiceType);
+        getCarPlateNumber = findViewById(R.id.getCarPlateNumber);
         tnc = findViewById(R.id.tnc);
         pp = findViewById(R.id.pp);
         signup = findViewById(R.id.signup);
@@ -93,13 +104,50 @@ public class SignUp extends AppCompatActivity {
         getTypeOfService.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                final CharSequence[] items = {"Tow (Accident)", "Tow (Breakdown)", "Tyre Mending", "Spare Tyre Replacement", "Battery Jump Start", "Battery Replacement", "Others (Unsure)"};
-                AlertDialog.Builder builder = new AlertDialog.Builder(SignUp.this);
-                builder.setItems(items, (dialog, item) -> {
-                    getTypeOfService.setText(items[item]);
+//                final CharSequence[] items = {"Tow (Accident)", "Tow (Breakdown)", "Tyre Mending", "Spare Tyre Replacement", "Battery Jump Start", "Battery Replacement", "Others (Unsure)"};
+//                AlertDialog.Builder builder = new AlertDialog.Builder(SignUp.this);
+////                builder.setView(R.id.type_of_service);
+//                builder.setItems(items, (dialog, item) -> {
+//                    getTypeOfService.setText(items[item]);
+//                });
+//                AlertDialog alert = builder.create();
+//                alert.show();
+                final Dialog dialog = new Dialog(SignUp.this);
+                dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+                dialog.setCancelable(false);
+                dialog.setContentView(R.layout.drop_down_type_of_service);
+                Button okButton = dialog.findViewById(R.id.buttonOk);
+                cbTowAccident = dialog.findViewById(R.id.serviceType_tow_accident);
+                cbTowBreakdown = dialog.findViewById(R.id.serviceType_tow_breakdown);
+                cbTyreManding = dialog.findViewById(R.id.serviceType_tyre_mending);
+                cbSpareTyreReplacement = dialog.findViewById(R.id.serviceType_spare_tyre_replacement);
+                cbBatteryJumpStart = dialog.findViewById(R.id.serviceType_battery_jump_start);
+                cbBatteryReplacement = dialog.findViewById(R.id.serviceType_battery_replacement);
+                cbOthers = dialog.findViewById(R.id.serviceType_other);
+                dialog.show();
+                okButton.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        DatabaseReference driverRef = firebaseDatabase.getReference().child("user").child("driver");
+
+                        if(cbTowAccident.isChecked()){
+                            arrayList.add(cbTowAccident.getText().toString());
+                        }else if(cbTowBreakdown.isChecked()){
+                            arrayList.add(cbTowBreakdown.getText().toString());
+                        }else if(cbTyreManding.isChecked()){
+                            arrayList.add(cbTyreManding.getText().toString());
+                        }else if(cbSpareTyreReplacement.isChecked()){
+                            arrayList.add(cbSpareTyreReplacement.getText().toString());
+                        }else if(cbBatteryJumpStart.isChecked()){
+                            arrayList.add(cbBatteryJumpStart.getText().toString());
+                        }else if(cbBatteryReplacement.isChecked()){
+                            arrayList.add(cbBatteryReplacement.getText().toString());
+                        }else if(cbOthers.isChecked()){
+                            arrayList.add(cbOthers.getText().toString());
+                        }
+                        dialog.dismiss();
+                    }
                 });
-                AlertDialog alert = builder.create();
-                alert.show();
             }
         });
         pp.setOnClickListener(new View.OnClickListener() {
@@ -124,6 +172,7 @@ public class SignUp extends AppCompatActivity {
                     Register(getEmail.getText().toString()
                             , getPassword.getText().toString()
                             , getFirstName.getText().toString() + " " + getLastName.getText().toString()
+                            , getCarPlateNumber.getText().toString()
                             , getCountryCode.getText().toString()
                             , getPhoneNumber.getText().toString()
                             , getTypeOfService.getText().toString());
@@ -138,7 +187,7 @@ public class SignUp extends AppCompatActivity {
 
     public void Register(String user_email
             , String user_password
-            , String user_name
+            , String user_name, String carplate
             , String user_country_code
             , String user_phone_number
             , String user_type_of_service) {
@@ -161,6 +210,7 @@ public class SignUp extends AppCompatActivity {
                             DatabaseReference userid = userData.child(user.getUid());
                             DatabaseReference useremail = userid.child("email");
                             DatabaseReference username = userid.child("name");
+                            DatabaseReference userCarPlate = userid.child("userCarPlate");
                             DatabaseReference userCountryCode = userid.child("country_code");
                             DatabaseReference userPhoneNumber = userid.child("phone_number");
                             DatabaseReference userTypeOfService = userid.child("type_of_service");
@@ -168,6 +218,10 @@ public class SignUp extends AppCompatActivity {
                             DatabaseReference approve = userid.child("approve");
                             DatabaseReference onlineStatus = userid.child("online_status");
                             DatabaseReference inProgress = userid.child("in_progress");
+
+                            for(int i=0; i < arrayList.size(); i++){
+                                userTypeOfService.child(arrayList.get(i).toString());
+                            }
 
                             DatabaseReference setWallet = database.getReference("wallet");
                             DatabaseReference setWalletUserId = setWallet.child(user.getUid());
@@ -179,6 +233,7 @@ public class SignUp extends AppCompatActivity {
                             userCountryCode.setValue(user_country_code);
                             userPhoneNumber.setValue(user_phone_number);
                             userTypeOfService.setValue(user_type_of_service);
+                            userCarPlate.setValue(carplate);
                             userRole.setValue(TAG);
                             approve.setValue("pending");
                             onlineStatus.setValue(false);
@@ -217,6 +272,7 @@ public class SignUp extends AppCompatActivity {
         getFirstName.setEnabled(true);
         getLastName.setEnabled(true);
         getEmail.setEnabled(true);
+        getCarPlateNumber.setEnabled(true);
         getPassword.setEnabled(true);
         getCfmPassword.setEnabled(true);
         getPhoneNumber.setEnabled(true);
@@ -232,6 +288,7 @@ public class SignUp extends AppCompatActivity {
         getFirstName.setEnabled(false);
         getLastName.setEnabled(false);
         getEmail.setEnabled(false);
+        getCarPlateNumber.setEnabled(false);
         getPassword.setEnabled(false);
         getCfmPassword.setEnabled(false);
         getPhoneNumber.setEnabled(false);
@@ -244,7 +301,7 @@ public class SignUp extends AppCompatActivity {
     }
 
     public boolean Validate() {
-        String[] getfield = new String[8];
+        String[] getfield = new String[9];
         getfield[0] = "false";
         getfield[1] = "false";
         getfield[2] = "false";
@@ -253,6 +310,7 @@ public class SignUp extends AppCompatActivity {
         getfield[5] = "false";
         getfield[6] = "false";
         getfield[7] = "false";
+        getfield[8] = "false";
 
         if (!getFirstName.getText().toString().equals("")) {
             getfield[0] = "true";
@@ -263,21 +321,24 @@ public class SignUp extends AppCompatActivity {
         if (!getEmail.getText().toString().equals("")) {
             getfield[2] = "true";
         }
-        if (!getPassword.getText().toString().equals("")) {
+        if (!getEmail.getText().toString().equals("")) {
             getfield[3] = "true";
         }
-        if (!getCfmPassword.getText().toString().equals("")) {
+        if (!getPassword.getText().toString().equals("")) {
             getfield[4] = "true";
         }
-        if (!getCountryCode.getText().toString().equals("")) {
+        if (!getCfmPassword.getText().toString().equals("")) {
             getfield[5] = "true";
         }
-        if (!getPhoneNumber.getText().toString().equals("")) {
+        if (!getCountryCode.getText().toString().equals("")) {
             getfield[6] = "true";
         }
-        if (!getTypeOfService.getText().toString().equals("Type of Services")||!getTypeOfService.getText().toString().equals("")) {
+        if (!getPhoneNumber.getText().toString().equals("")) {
             getfield[7] = "true";
         }
-        return !getfield[0].equals("false") && !getfield[1].equals("false")&& !getfield[2].equals("false")&& !getfield[3].equals("false")&& !getfield[4].equals("false")&& !getfield[5].equals("false")&& !getfield[6].equals("false")&& !getfield[7].equals("false");
+        if (!getTypeOfService.getText().toString().equals("Type of Services")||!getTypeOfService.getText().toString().equals("")) {
+            getfield[8] = "true";
+        }
+        return !getfield[0].equals("false") && !getfield[1].equals("false")&& !getfield[2].equals("false")&& !getfield[3].equals("false")&& !getfield[4].equals("false")&& !getfield[5].equals("false")&& !getfield[6].equals("false")&& !getfield[7].equals("false") && !getfield[8].equals("false");
     }
 }

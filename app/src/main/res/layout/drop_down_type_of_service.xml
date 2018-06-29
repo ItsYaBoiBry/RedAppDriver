@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:id="@+id/type_of_service"
+    android:orientation="vertical"
+    android:padding="15dp">
+
+    <android.support.v7.widget.AppCompatCheckBox
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:id="@+id/serviceType_tow_accident"
+        android:text="Tow (Accident)"
+        android:textSize="16dp"/>
+
+    <android.support.v7.widget.AppCompatCheckBox
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:id="@+id/serviceType_tow_breakdown"
+        android:text="Tow (Breakdown)"
+        android:textSize="16dp"
+        android:layout_marginTop="10dp"/>
+
+    <android.support.v7.widget.AppCompatCheckBox
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:id="@+id/serviceType_tyre_mending"
+        android:text="Tyre Mending"
+        android:textSize="16dp"
+        android:layout_marginTop="10dp"/>
+
+    <android.support.v7.widget.AppCompatCheckBox
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:id="@+id/serviceType_spare_tyre_replacement"
+        android:text="Spare Tyre Replacement"
+        android:textSize="16dp"
+        android:layout_marginTop="10dp"/>
+
+    <android.support.v7.widget.AppCompatCheckBox
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:id="@+id/serviceType_battery_jump_start"
+        android:text="Battery Jump Start"
+        android:textSize="16dp"
+        android:layout_marginTop="10dp"/>
+
+    <android.support.v7.widget.AppCompatCheckBox
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:id="@+id/serviceType_battery_replacement"
+        android:text="Battery Replacement"
+        android:textSize="16dp"
+        android:layout_marginTop="10dp"/>
+
+    <android.support.v7.widget.AppCompatCheckBox
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:id="@+id/serviceType_other"
+        android:text="Others (Unsure)"
+        android:textSize="16dp"
+        android:layout_marginTop="10dp"/>
+
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:gravity="center"
+        android:id="@+id/buttonOk"
+        android:text="OK"
+        android:textSize="16dp"
+        android:background="#000"
+        android:textColor="#fff"
+        android:layout_marginTop="15dp"/>
+
+
+</LinearLayout>

@@ -6,6 +6,7 @@
     <string name="button_sign_in_text">Sign In</string>
     <string name="button_sign_up_text">Sign Up</string>
     <string name="label_email_address">Email Address</string>
+    <string name="label_car_plate_number">Car Plate</string>
     <string name="label_password">Password</string>
     <string name="label_forgot_password">Forgot Password?</string>
     <string name="label_first_name">First Name</string>

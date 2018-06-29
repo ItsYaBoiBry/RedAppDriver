@@ -29,11 +29,13 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
+import java.net.URL;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import de.hdodenhof.circleimageview.CircleImageView;
+import sg.redapp.com.redappdriver.Classes.User;
 import sg.redapp.com.redappdriver.R;
 import sg.redapp.com.redappdriver.TripProcess;
 import sg.redapp.com.redappdriver.functions.SharedPreferenceStorage;
@@ -133,7 +135,41 @@ public class Home extends Fragment {
         referral.setText("AdSIF127");
         credit.setText("$" + String.valueOf(2000.00));
         rating.setText(String.valueOf(4.2));
-        name.setText("Bryan Low");
+        user = firebaseAuth.getCurrentUser();
+        DatabaseReference userName = firebaseDatabase.getReference().child("user").child("driver");
+//        name.setText(""+ userName);
+        userName.addChildEventListener(new ChildEventListener() {
+            @Override
+            public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+                User userList = dataSnapshot.getValue(User.class);
+                String userKey = dataSnapshot.getKey();
+                if(userKey == user.getUid()){
+                    Log.d("user", "onChildAdded: User " + userList.getName());
+                    name.setText(userList.getName());
+                }
+
+            }
+
+            @Override
+            public void onChildChanged(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+
+            }
+
+            @Override
+            public void onChildRemoved(@NonNull DataSnapshot dataSnapshot) {
+
+            }
+
+            @Override
+            public void onChildMoved(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        });
         Glide.with(getContext())
                 .load("https://images.pexels.com/photos/91227/pexels-photo-91227.jpeg?auto=compress&cs=tinysrgb&h=350")
                 .into(profile);
@@ -183,6 +219,45 @@ public class Home extends Fragment {
     public void onResume() {
         super.onResume();
         checkTrip();
+        user = firebaseAuth.getCurrentUser();
+        DatabaseReference userName = firebaseDatabase.getReference().child("user").child("driver");
+//        name.setText(""+ userName);
+        userName.addChildEventListener(new ChildEventListener() {
+            @Override
+            public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+                User userList = dataSnapshot.getValue(User.class);
+                String userKey = dataSnapshot.getKey();
+                if(userKey == user.getUid()){
+                    Log.d("user", "onChildAdded: User " + userList.getName());
+                    name.setText(userList.getName());
+                }
+
+            }
+
+            @Override
+            public void onChildChanged(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+
+            }
+
+            @Override
+            public void onChildRemoved(@NonNull DataSnapshot dataSnapshot) {
+
+            }
+
+            @Override
+            public void onChildMoved(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        });
+        Glide.with(getContext())
+                .load("https://images.pexels.com/photos/91227/pexels-photo-91227.jpeg?auto=compress&cs=tinysrgb&h=350")
+                .into(profile);
+//        showDialog();
     }
 
     @Override

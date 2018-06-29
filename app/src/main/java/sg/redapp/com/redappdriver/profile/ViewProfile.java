@@ -1,19 +1,30 @@
 package sg.redapp.com.redappdriver.profile;
 
 import android.app.AlertDialog;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.ChildEventListener;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 
 import java.util.Set;
 
 import de.hdodenhof.circleimageview.CircleImageView;
+import sg.redapp.com.redappdriver.Classes.User;
 import sg.redapp.com.redappdriver.R;
 import sg.redapp.com.redappdriver.login.SignUp;
 
@@ -23,6 +34,9 @@ public class ViewProfile extends AppCompatActivity {
     TextView countryCode, serviceType, name, rating, vehicleNum;
     Button save, edit;
     CircleImageView profileImage, editImage;
+    private FirebaseDatabase firebaseDatabase;
+    private FirebaseAuth firebaseAuth;
+    private FirebaseUser user;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,7 +57,11 @@ public class ViewProfile extends AppCompatActivity {
         edit = findViewById(R.id.edit);
         profileImage = findViewById(R.id.userimage);
         editImage = findViewById(R.id.editImage);
+        firebaseDatabase = FirebaseDatabase.getInstance();
+        firebaseAuth = FirebaseAuth.getInstance();
+        user = firebaseAuth.getCurrentUser();
     }
+
     public void SetupToolbar() {
         toolbar = findViewById(R.id.toolbar);
         toolbar.setNavigationOnClickListener(new View.OnClickListener() {
@@ -97,15 +115,48 @@ public class ViewProfile extends AppCompatActivity {
     }
 
     public void tempSetup(){
-        firstName.setText("Bryan");
-        lastName.setText("Low");
-        email.setText("bryanlowsk@gmail.com");
-        countryCode.setText("+65");
-        phone.setText("94511958");
-        serviceType.setText("Tow (Accident)");
-        name.setText(String.format("%s %s", firstName.getText().toString(), lastName.getText().toString()));
-        rating.setText("4.2");
-        vehicleNum.setText("SFK423J");
+        DatabaseReference driverRef = firebaseDatabase.getReference().child("user").child("driver");
+//        name.setText(""+ userName);
+        driverRef.addChildEventListener(new ChildEventListener() {
+            @Override
+            public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+                User userList = dataSnapshot.getValue(User.class);
+                String userKey = dataSnapshot.getKey();
+                if(userKey == user.getUid()){
+                    Log.d("user", "onChildAdded: User " + userList.getName());
+                    firstName.setText(userList.getName());
+                    lastName.setText("Low");
+                    email.setText(userList.getEmail());
+                    countryCode.setText("+65");
+                    phone.setText(userList.getPhone_number());
+                    serviceType.setText(userList.getType_of_service());
+                    name.setText(String.format("%s %s", firstName.getText().toString(), lastName.getText().toString()));
+                    rating.setText("4.2");
+                    vehicleNum.setText("SFK423J");
+                }
+
+            }
+
+            @Override
+            public void onChildChanged(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+
+            }
+
+            @Override
+            public void onChildRemoved(@NonNull DataSnapshot dataSnapshot) {
+
+            }
+
+            @Override
+            public void onChildMoved(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        });
         Glide.with(ViewProfile.this).load("https://images.pexels.com/photos/91227/pexels-photo-91227.jpeg?auto=compress&cs=tinysrgb&h=350").into(profileImage);
     }
     public void Edit(){
@@ -134,6 +185,13 @@ public class ViewProfile extends AppCompatActivity {
         serviceType.setClickable(false);
         serviceType.setEnabled(false);
         name.setText(String.format("%s %s", firstName.getText().toString(), lastName.getText().toString()));
+        String updateName = name.getText().toString();
+        String updateEmail = email.getText().toString();
+        String updatePhoneNumber = phone.getText().toString();
+        String updateTypeOfService = serviceType.getText().toString();
+        DatabaseReference driverRef = firebaseDatabase.getReference().child("user").child("driver");
+        User updateUser = new User(updateEmail,updateName,updatePhoneNumber,updateTypeOfService);
+        driverRef.child(user.getUid()).setValue(updateUser);
     }
     public void Init(){
         editImage.setVisibility(View.GONE);

@@ -96,6 +96,19 @@
                 android:textColorHint="@color/loginsignuptedittextfontcolor"
                 android:textSize="15sp" />
             <EditText
+                android:id="@+id/getCarPlateNumber"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_marginTop="10dp"
+                android:layout_weight="1"
+                android:background="@color/loginsignuptedittext"
+                android:hint="@string/label_car_plate_number"
+                android:inputType="textEmailAddress"
+                android:padding="10dp"
+                android:textColor="@color/loginsignuptedittextfontcolor"
+                android:textColorHint="@color/loginsignuptedittextfontcolor"
+                android:textSize="15sp" />
+            <EditText
                 android:id="@+id/getPassword"
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
