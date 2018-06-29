@@ -21,6 +21,8 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
+import com.firebase.geofire.GeoFire;
+import com.firebase.geofire.GeoLocation;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.ChildEventListener;
@@ -35,7 +37,9 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import de.hdodenhof.circleimageview.CircleImageView;
+import sg.redapp.com.redappdriver.Classes.PassengerRequest;
 import sg.redapp.com.redappdriver.Classes.User;
+import sg.redapp.com.redappdriver.MainActivity;
 import sg.redapp.com.redappdriver.R;
 import sg.redapp.com.redappdriver.TripProcess;
 import sg.redapp.com.redappdriver.functions.SharedPreferenceStorage;
@@ -67,13 +71,17 @@ public class Home extends Fragment {
         firebaseAuth = FirebaseAuth.getInstance();
         user = firebaseAuth.getCurrentUser();
 
-        DatabaseReference customerRequestRef = firebaseDatabase.getReference().child("passengerRequest").child("3bmvIyIkzaRxwI7Xtpl4eadGHlf1");
+        DatabaseReference customerRequestRef = firebaseDatabase.getReference().child("passengerRequest");
         customerRequestRef.addChildEventListener(new ChildEventListener() {
             @Override
             public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
-                String passengerKey = dataSnapshot.getKey();
-                DatabaseReference location  = customerRequestRef.child(passengerKey).child("l").child("0");
-                Log.d("pasenger request", "" + dataSnapshot.getValue() );
+                String uid = user.getUid();
+                String userKey = dataSnapshot.getKey();
+//
+                if(userKey.equals(uid)){
+                    showDialog();
+                }
+
             }
 
             @Override
@@ -181,9 +189,64 @@ public class Home extends Fragment {
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
         dialog.setCancelable(false);
         dialog.setContentView(R.layout.new_request_dialog_layout);
+        TextView userName = dialog.findViewById(R.id.userName);
+        TextView userOrigin = dialog.findViewById(R.id.origin);
+        TextView userDestination = dialog.findViewById(R.id.destination);
+        TextView userServiceType = dialog.findViewById(R.id.pickupServiceType);
+        TextView amount = dialog.findViewById(R.id.amount);
         TextView timer = dialog.findViewById(R.id.timer);
         Button reject = dialog.findViewById(R.id.reject);
         Button accept = dialog.findViewById(R.id.accept);
+        DatabaseReference customerRequestRef = firebaseDatabase.getReference().child("passengerRequest");
+        customerRequestRef.addChildEventListener(new ChildEventListener() {
+            @Override
+            public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+                String uid = user.getUid();
+                String userKey = dataSnapshot.getKey();
+//
+                if(userKey.equals(uid)){
+                    PassengerRequest passengerRequest = dataSnapshot.getValue(PassengerRequest.class);
+                    String destinationName  = passengerRequest.getDestinationName();
+                    String name  = passengerRequest.getName();
+                    double pickupLatitude  = passengerRequest.getPickupLatitude();
+                    double pickupLongitude  = passengerRequest.getPickupLongitude();
+                    String  pickupName  = passengerRequest.getPickupName();
+                    double price  = passengerRequest.getPrice();
+                    String  serviceType  = passengerRequest.getServiceType();
+                    String vehicleModel  = passengerRequest.getVehicleModel();
+                    String vehicleNumber  = passengerRequest.getVehicleNumber();
+                    Log.d("pasenger request", "" + serviceType);
+                    userName.setText(name);
+                    userOrigin.setText(pickupName);
+                    userDestination.setText(destinationName);
+                    userServiceType.setText(serviceType);
+                    amount.setText(""+price);
+
+                }
+
+            }
+
+            @Override
+            public void onChildChanged(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+
+            }
+
+            @Override
+            public void onChildRemoved(@NonNull DataSnapshot dataSnapshot) {
+
+            }
+
+            @Override
+            public void onChildMoved(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        });
+
         new CountDownTimer(5000, 1000) { // adjust the milli seconds here
 
             public void onTick(long millisUntilFinished) {
@@ -199,12 +262,24 @@ public class Home extends Fragment {
         reject.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                customerRequestRef.child(user.getUid()).child("status").setValue(false);
                 dialog.dismiss();
             }
         });
         accept.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                customerRequestRef.child(user.getUid()).child("status").setValue(true);
+//                firebaseDatabase.getReference().child("availableDriver").child(user.getUid()).removeValue();
+//                MainActivity ma = new MainActivity();
+                DatabaseReference workingDriverRef = firebaseDatabase.getReference().child("workingDriver");
+//                GeoFire geofire = new GeoFire(workingDriverRef);
+//                geofire.setLocation(user.getUid(), new GeoLocation(ma.latitude, ma.longitude), new GeoFire.CompletionListener() {
+//                    @Override
+//                    public void onComplete(String key, DatabaseError error) {
+//
+//                    }
+//                });
                 storage.StoreString("trip_status", "2");
                 startActivity(new Intent(getContext(), TripProcess.class));
                 dialog.dismiss();

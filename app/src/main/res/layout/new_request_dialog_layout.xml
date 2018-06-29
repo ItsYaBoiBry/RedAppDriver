@@ -55,6 +55,7 @@
                 android:layout_margin="10dp"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:id="@+id/userName"
                 android:text="Aqil Tahar"/>
         </LinearLayout>
         <TextView
@@ -97,7 +98,7 @@
             android:textSize="17sp"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:id="@+id/servicetype"
+            android:id="@+id/pickupServiceType"
             android:text="Tow (Accident)"/>
         <Space
             android:layout_width="wrap_content"
