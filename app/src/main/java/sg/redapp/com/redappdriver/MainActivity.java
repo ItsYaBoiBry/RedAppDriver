@@ -34,6 +34,7 @@ import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -58,16 +59,15 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     TextView onlineStatus;
     SwitchCompat setOnline;
 
-    double currentLatitude;
-    double currentLongitude;
-    private FirebaseAuth mAuth;
     // TODO: Task 1 - Declare Firebase variables
     private FirebaseDatabase firebaseDatabase;
     private FirebaseAuth firebaseAuth;
+    private FirebaseUser user;
     private DatabaseReference availableDriverListRef;
 
     private GoogleApiClient mGoogleApiClient;
     private Location mLocation;
+    private String customerId ="";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -75,15 +75,16 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         setContentView(R.layout.activity_main);
         // TODO: Task 2: Get Firebase database instance and reference
         checkpermission();
-        mAuth = FirebaseAuth.getInstance();
-
-        FirebaseUser user = mAuth.getCurrentUser();
+        firebaseDatabase = FirebaseDatabase.getInstance();
+        firebaseAuth = FirebaseAuth.getInstance();
+        user = firebaseAuth.getCurrentUser();
         FirebaseDatabase database = FirebaseDatabase.getInstance();
-        DatabaseReference myRef = database.getReference("user");
-        DatabaseReference userData = myRef.child("driver");
+        DatabaseReference userRef = database.getReference("user");
+        DatabaseReference userData = userRef.child("driver");
         assert user != null;
-        DatabaseReference userid = userData.child(user.getUid());
-        DatabaseReference onlineStatus = userid.child("online_status");
+        DatabaseReference userId = userData.child(user.getUid());
+        DatabaseReference onlineStatus = userId.child("online_status");
+//        getAssignedCustomer();
 
         onlineStatus.addValueEventListener(new ValueEventListener() {
             @Override
@@ -91,7 +92,6 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                 Boolean value = dataSnapshot.getValue(Boolean.class);
                 if (value) {
                     setOnline.setChecked(true);
-
 
                 } else {
                     setOnline.setChecked(false);
@@ -104,8 +104,6 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
             }
         });
 
-        firebaseDatabase = FirebaseDatabase.getInstance();
-        firebaseAuth = FirebaseAuth.getInstance();
         availableDriverListRef = firebaseDatabase.getReference("availableDriver");
         configureNavigationDrawer();
         configureToolbar();
@@ -124,6 +122,8 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                 .addOnConnectionFailedListener(this)
                 .addApi(LocationServices.API)
                 .build();
+
+
     }
 
     @Override
@@ -141,19 +141,16 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         Log.d("tag", "onConnected lan long: " + location.getLatitude());
 
         DatabaseReference availableDriverRef = FirebaseDatabase.getInstance().getReference("availableDriver");
-        FirebaseUser user = mAuth.getCurrentUser();
         GeoFire geofire = new GeoFire(availableDriverListRef);
         geofire.setLocation(user.getUid(), new GeoLocation(location.getLatitude(), location.getLongitude()), new GeoFire.CompletionListener() {
             @Override
             public void onComplete(String key, DatabaseError error) {
-
+                Log.d("location", "changed: "+ location.getLatitude());
             }
         });
-//        currentLatitude = location.getLatitude();
-//        currentLongitude = location.getLongitude();
+        Log.d("", "onLocationChanged: latitude" +  location.getLatitude() + "longitude:" + location.getLongitude());
+        Toast.makeText(MainActivity.this,"latitude " +  location.getLatitude() + "longitude:" + location.getLongitude() ,Toast.LENGTH_SHORT).show();
 
-//        availableDriverRef.child(user.getUid()).child("latitude").setValue(location.getLatitude());
-//        availableDriverRef.child(user.getUid()).child("longitude").setValue(location.getLongitude());
     }
 
     @Override
@@ -183,7 +180,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         Intent intent = getIntent();
         String uid = intent.getStringExtra("uid");
         DatabaseReference ref = FirebaseDatabase.getInstance().getReference("availableDriver");
-//        GeoFire geofire = new GeoFire(ref);
+        GeoFire geofire = new GeoFire(ref);
 //        geofire.removeLocation(uid);
     }
 
@@ -201,14 +198,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
 //            availableDriverRef.child(uid).child("latitude").setValue(mLocation.getLatitude());
 //            availableDriverRef.child(uid).child("longitude").setValue(mLocation.getLongitude());
             DatabaseReference availableDriverRef = FirebaseDatabase.getInstance().getReference("availableDriver");
-            FirebaseUser user = mAuth.getCurrentUser();
-            GeoFire geofire = new GeoFire(availableDriverListRef);
-            geofire.setLocation(user.getUid(), new GeoLocation(mLocation.getLatitude(), mLocation.getLongitude()), new GeoFire.CompletionListener() {
-                @Override
-                public void onComplete(String key, DatabaseError error) {
 
-                }
-            });
             FirebaseDatabase database = FirebaseDatabase.getInstance();
             DatabaseReference myRef = database.getReference("user");
             DatabaseReference userData = myRef.child("driver");
@@ -222,7 +212,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
             onlineStatus.setText("offline\u2022 ");
             onlineStatus.setTextColor(getResources().getColor(R.color.darkgrey));
             Log.e("Online Status: ", "Offline\u2022 ");
-            FirebaseUser user = mAuth.getCurrentUser();
+            user = firebaseAuth.getCurrentUser();
             FirebaseDatabase database = FirebaseDatabase.getInstance();
             DatabaseReference myRef = database.getReference("user");
             DatabaseReference userData = myRef.child("driver");
@@ -242,14 +232,18 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                     Intent intent = getIntent();
                     String uid = intent.getStringExtra("uid");
                     AvailableDriver availableDriver = new AvailableDriver(mLocation.getLatitude(), mLocation.getLongitude());
-
+                    user = firebaseAuth.getCurrentUser();
                     DatabaseReference availableDriverRef = FirebaseDatabase.getInstance().getReference("availableDriver");
+                    GeoFire geofire = new GeoFire(availableDriverListRef);
+                    geofire.setLocation(user.getUid(), new GeoLocation(mLocation.getLatitude(), mLocation.getLongitude()), new GeoFire.CompletionListener() {
+                        @Override
+                        public void onComplete(String key, DatabaseError error) {
 
-                    availableDriverRef.child(uid).child("latitude").setValue(mLocation.getLatitude());
-                    availableDriverRef.child(uid).child("longitude").setValue(mLocation.getLongitude());
+                        }
+                    });
+//                    availableDriverRef.child(uid).child("latitude").setValue(mLocation.getLatitude());
+//                    availableDriverRef.child(uid).child("longitude").setValue(mLocation.getLongitude());
 
-
-                    FirebaseUser user = mAuth.getCurrentUser();
                     FirebaseDatabase database = FirebaseDatabase.getInstance();
                     DatabaseReference myRef = database.getReference("user");
                     DatabaseReference userData = myRef.child("driver");
@@ -266,7 +260,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                     Intent intent = getIntent();
                     String uid = intent.getStringExtra("uid");
                     availableDriverListRef.child(uid).removeValue();
-                    FirebaseUser user = mAuth.getCurrentUser();
+                    user = firebaseAuth.getCurrentUser();
                     FirebaseDatabase database = FirebaseDatabase.getInstance();
                     DatabaseReference myRef = database.getReference("user");
                     DatabaseReference userData = myRef.child("driver");
@@ -319,9 +313,8 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                         CloseDrawer();
                         return true;
                     case R.id.logout:
-                        mAuth = FirebaseAuth.getInstance();
 
-                        FirebaseUser user = mAuth.getCurrentUser();
+                        user = firebaseAuth.getCurrentUser();
                         assert user != null;
                         availableDriverListRef.child(user.getUid()).removeValue();
                         firebaseAuth.signOut();
@@ -452,4 +445,9 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
             Log.d("tag", "Location not Detected ");
         }
     }
+//    public void getAssignedCustomer(){
+//
+//        DatabaseReference assignedCustomerRef = FirebaseDatabase.getInstance().getReference().child("Users").child("Drivers").child();
+//        String driverId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+//    }
 }
