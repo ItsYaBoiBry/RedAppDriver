@@ -66,14 +66,9 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     private DatabaseReference availableDriverListRef;
 
     private GoogleApiClient mGoogleApiClient;
-    public Location mLocation;
-    public double latitude;
-    public double longitude;
+    private Location mLocation;
     private String customerId ="";
 
-//    public MainActivity(){
-//
-//    }
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -181,17 +176,11 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         if (mGoogleApiClient.isConnected()) {
             mGoogleApiClient.disconnect();
         }
-
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-//        DatabaseReference ref = FirebaseDatabase.getInstance().getReference("availableDriver");
-//        GeoFire geofire = new GeoFire(ref);
-//        geofire.removeLocation(user.getUid());
-        DatabaseReference availableDriverRef = FirebaseDatabase.getInstance().getReference("availableDriver");
-        availableDriverListRef.child(user.getUid()).removeValue();
+        Intent intent = getIntent();
+        String uid = intent.getStringExtra("uid");
+        DatabaseReference ref = FirebaseDatabase.getInstance().getReference("availableDriver");
+        GeoFire geofire = new GeoFire(ref);
+//        geofire.removeLocation(uid);
     }
 
     private void configureSwitch() {

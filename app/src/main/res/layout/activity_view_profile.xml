@@ -75,7 +75,8 @@
             android:layout_height="wrap_content"
             android:layout_below="@id/toolbarlayout"
             android:layout_margin="10dp"
-            android:orientation="vertical">
+            android:orientation="vertical"
+            tools:ignore="ExtraText">
 
             <RelativeLayout
                 android:layout_gravity="center_horizontal"
@@ -145,7 +146,7 @@
                 android:textSize="15sp" />
 
             <LinearLayout
-                android:layout_width="match_parent"
+                android:layout_width="350dp"
                 android:layout_height="wrap_content"
                 android:layout_margin="5dp"
                 android:orientation="horizontal"
@@ -153,7 +154,7 @@
 
                 <EditText
                     android:id="@+id/firstName"
-                    android:layout_width="wrap_content"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_margin="5dp"
                     android:layout_weight="1"
@@ -166,20 +167,6 @@
                     android:textColorHint="@color/darkgrey"
                     android:textSize="15sp" />
 
-                <EditText
-                    android:id="@+id/lastName"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_margin="5dp"
-                    android:layout_weight="1"
-                    android:background="@drawable/profile_text_background"
-                    android:enabled="false"
-                    android:hint="@string/label_last_name"
-                    android:inputType="textPersonName"
-                    android:padding="10dp"
-                    android:textColor="@color/white"
-                    android:textColorHint="@color/darkgrey"
-                    android:textSize="15sp" />
             </LinearLayout>
 
             <EditText
@@ -198,6 +185,24 @@
                 android:textColor="@color/white"
                 android:textColorHint="@color/darkgrey"
                 android:textSize="15sp" />
+
+            <EditText
+                android:id="@+id/carPlate"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="10dp"
+                android:layout_marginLeft="10dp"
+                android:layout_marginRight="10dp"
+                android:layout_marginStart="10dp"
+                android:background="@drawable/profile_text_background"
+
+                android:hint="Car Plate Number"
+
+                android:inputType="text|text"
+                android:padding="10dp"
+                android:textColor="@color/white"
+
+                android:textColorHint="@color/darkgrey" />
 
             <LinearLayout
                 android:layout_width="match_parent"

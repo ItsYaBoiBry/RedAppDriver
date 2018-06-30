@@ -30,11 +30,13 @@ public class User {
         this.type_of_service = type_of_service;
     }
 
-    public User( String email,String name,String phone_number, String type_of_service) {
+
+    public User( String email,String name,String phone_number, String type_of_service,String carPlateNum) {
         this.email = email;
         this.name = name;
         this.phone_number = phone_number;
         this.type_of_service = type_of_service;
+        this.userCarPlate = carPlateNum;
     }
 
     public String getApprove() {

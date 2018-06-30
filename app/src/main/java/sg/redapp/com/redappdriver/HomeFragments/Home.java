@@ -142,7 +142,8 @@ public class Home extends Fragment {
     public void tempsetup() {
         referral.setText("AdSIF127");
         credit.setText("$" + String.valueOf(2000.00));
-        rating.setText(String.valueOf(4.2));
+
+        //rating.setText(String.valueOf(4.2));
         user = firebaseAuth.getCurrentUser();
         DatabaseReference userName = firebaseDatabase.getReference().child("user").child("driver");
 //        name.setText(""+ userName);
@@ -154,6 +155,8 @@ public class Home extends Fragment {
                 if(userKey == user.getUid()){
                     Log.d("user", "onChildAdded: User " + userList.getName());
                     name.setText(userList.getName());
+                    Log.d("Gunjan","CAR PLATE VALUE "+ userList.getUserCarPlate()+"");
+                    rating.setText(userList.getUserCarPlate());
                 }
 
             }

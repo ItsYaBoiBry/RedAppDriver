@@ -30,7 +30,7 @@ import sg.redapp.com.redappdriver.login.SignUp;
 
 public class ViewProfile extends AppCompatActivity {
     Toolbar toolbar;
-    EditText firstName, lastName, email,phone;
+    EditText firstName, carPlate, email,phone;
     TextView countryCode, serviceType, name, rating, vehicleNum;
     Button save, edit;
     CircleImageView profileImage, editImage;
@@ -45,7 +45,7 @@ public class ViewProfile extends AppCompatActivity {
         SetupToolbar();
 
         firstName = findViewById(R.id.firstName);
-        lastName = findViewById(R.id.lastName);
+        carPlate = findViewById(R.id.carPlate);
         email = findViewById(R.id.email);
         phone = findViewById(R.id.phone);
         countryCode = findViewById(R.id.countryCode);
@@ -125,14 +125,14 @@ public class ViewProfile extends AppCompatActivity {
                 if(userKey == user.getUid()){
                     Log.d("user", "onChildAdded: User " + userList.getName());
                     firstName.setText(userList.getName());
-                    lastName.setText("Low");
+                    carPlate.setText(userList.getUserCarPlate());
                     email.setText(userList.getEmail());
                     countryCode.setText("+65");
                     phone.setText(userList.getPhone_number());
                     serviceType.setText(userList.getType_of_service());
-                    name.setText(String.format("%s %s", firstName.getText().toString(), lastName.getText().toString()));
+                    name.setText(String.format("%s %s", firstName.getText().toString(), carPlate.getText().toString()));
                     rating.setText("4.2");
-                    vehicleNum.setText("SFK423J");
+                    vehicleNum.setText(userList.getUserCarPlate());
                 }
 
             }
@@ -164,7 +164,7 @@ public class ViewProfile extends AppCompatActivity {
         edit.setVisibility(View.GONE);
         save.setVisibility(View.VISIBLE);
         firstName.setEnabled(true);
-        lastName.setEnabled(true);
+        carPlate.setEnabled(true);
         email.setEnabled(true);
         countryCode.setEnabled(true);
         countryCode.setClickable(true);
@@ -177,20 +177,21 @@ public class ViewProfile extends AppCompatActivity {
         edit.setVisibility(View.VISIBLE);
         save.setVisibility(View.GONE);
         firstName.setEnabled(false);
-        lastName.setEnabled(false);
+        carPlate.setEnabled(false);
         email.setEnabled(false);
         countryCode.setEnabled(false);
         countryCode.setClickable(false);
         phone.setEnabled(false);
         serviceType.setClickable(false);
         serviceType.setEnabled(false);
-        name.setText(String.format("%s %s", firstName.getText().toString(), lastName.getText().toString()));
+        name.setText(String.format("%s", firstName.getText().toString()));
         String updateName = name.getText().toString();
         String updateEmail = email.getText().toString();
         String updatePhoneNumber = phone.getText().toString();
         String updateTypeOfService = serviceType.getText().toString();
+        String updateCarPlate = carPlate.getText().toString();
         DatabaseReference driverRef = firebaseDatabase.getReference().child("user").child("driver");
-        User updateUser = new User(updateEmail,updateName,updatePhoneNumber,updateTypeOfService);
+        User updateUser = new User(updateEmail,updateName,updatePhoneNumber,updateTypeOfService,updateCarPlate);
         driverRef.child(user.getUid()).setValue(updateUser);
     }
     public void Init(){
@@ -198,7 +199,7 @@ public class ViewProfile extends AppCompatActivity {
         edit.setVisibility(View.VISIBLE);
         save.setVisibility(View.GONE);
         firstName.setEnabled(false);
-        lastName.setEnabled(false);
+        carPlate.setEnabled(false);
         email.setEnabled(false);
         countryCode.setEnabled(false);
         countryCode.setClickable(false);
