@@ -78,6 +78,17 @@
                 android:layout_alignParentTop="true"
                 android:gravity="right|end|center_vertical">
 
+                <ImageButton
+                    android:onClick="onClick"
+                    android:id="@+id/userPhone"
+                    style="@style/Base.Widget.AppCompat.Button.Borderless"
+                    android:layout_width="50dp"
+                    android:layout_height="match_parent"
+                    android:contentDescription="calluser"
+                    android:gravity="center"
+                    android:src="@drawable/phone"
+                    android:textColor="@color/white" />
+
                 <Space
                     android:layout_width="10dp"
                     android:layout_height="wrap_content" />
@@ -120,21 +131,7 @@
                 android:textAlignment="textEnd"
                 android:id="@+id/textViewDestination" />
 
-            <ImageButton
-                android:id="@+id/userPhone"
-                style="@style/Base.Widget.AppCompat.Button.Borderless"
-                android:layout_width="50dp"
-                android:layout_height="match_parent"
-                android:layout_alignLeft="@+id/textView"
-                android:layout_alignParentBottom="true"
-                android:layout_alignStart="@+id/textView"
-                android:layout_marginLeft="45dp"
-                android:layout_marginStart="45dp"
-                android:contentDescription="calluser"
-                android:gravity="center"
-                android:onClick="onClick"
-                android:src="@drawable/phone"
-                android:textColor="@color/white" />
+
         </RelativeLayout>
     </LinearLayout>
 

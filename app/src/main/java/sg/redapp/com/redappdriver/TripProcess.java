@@ -1,11 +1,15 @@
 package sg.redapp.com.redappdriver;
 
+import android.*;
 import android.app.Dialog;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.location.Location;
 import android.os.Build;
 import android.os.CountDownTimer;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 
 import android.os.Bundle;
@@ -19,8 +23,16 @@ import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
+import com.firebase.geofire.GeoFire;
+import com.firebase.geofire.GeoLocation;
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.location.LocationListener;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -39,7 +51,7 @@ import de.hdodenhof.circleimageview.CircleImageView;
 import sg.redapp.com.redappdriver.Classes.PassengerRequest;
 import sg.redapp.com.redappdriver.functions.SharedPreferenceStorage;
 
-public class TripProcess extends FragmentActivity implements OnMapReadyCallback, View.OnClickListener{
+public class TripProcess extends FragmentActivity implements OnMapReadyCallback, View.OnClickListener, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener {
     CircleImageView profile;
     TextView name, destination;
     ImageButton message, phone;
@@ -50,6 +62,8 @@ public class TripProcess extends FragmentActivity implements OnMapReadyCallback,
     private FirebaseDatabase firebaseDatabase;
     private FirebaseAuth firebaseAuth;
     private FirebaseUser firebaseUser;
+    private GoogleApiClient mGoogleApiClient;
+    public Location mLocation;
 
     private GoogleMap mMap;
 
@@ -81,7 +95,7 @@ public class TripProcess extends FragmentActivity implements OnMapReadyCallback,
         completeTrip.setVisibility(View.GONE);
         messageUser = findViewById(R.id.messageUser);
         userPhone = findViewById(R.id.userPhone);
-        destination = findViewById(R.id.destination);
+        destination = findViewById(R.id.textViewDestination);
 
         DatabaseReference customerRequestRef = firebaseDatabase.getReference().child("passengerRequest");
         customerRequestRef.addChildEventListener(new ChildEventListener() {
@@ -144,6 +158,12 @@ public class TripProcess extends FragmentActivity implements OnMapReadyCallback,
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
+        mGoogleApiClient = new GoogleApiClient.Builder(this)
+                .addConnectionCallbacks(this)
+                .addOnConnectionFailedListener(this)
+                .addApi(LocationServices.API)
+                .build();
+
     }
 
     @Override
@@ -166,6 +186,17 @@ public class TripProcess extends FragmentActivity implements OnMapReadyCallback,
         accept.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                DatabaseReference tripRef = firebaseDatabase.getReference().child("trip").child(firebaseUser.getUid());
+                tripRef.removeValue();
+                startLocationService();
+                DatabaseReference availableDriverRef = firebaseDatabase.getReference().child("availableDriver");
+                GeoFire geofire = new GeoFire(availableDriverRef);
+                geofire.setLocation(firebaseUser.getUid(), new GeoLocation(mLocation.getLatitude(), mLocation.getLongitude()), new GeoFire.CompletionListener() {
+                    @Override
+                    public void onComplete(String key, DatabaseError error) {
+                        Log.d("location", "changed: "+ mLocation.getLatitude());
+                    }
+                });
                 dialog.dismiss();
             }
         });
@@ -180,6 +211,15 @@ public class TripProcess extends FragmentActivity implements OnMapReadyCallback,
 
     }
 
+    public void confirmPickup(){
+        DatabaseReference trip = firebaseDatabase.getReference().child("trip").child(firebaseUser.getUid());
+        trip.child("status").setValue("confirm pickup");
+    }
+    public void completedTrip(){
+        DatabaseReference trip = firebaseDatabase.getReference().child("trip").child(firebaseUser.getUid());
+        trip.child("status").setValue("complete pickup");
+    }
+
     @Override
     public void onClick(View v) {
         switch (v.getId()){
@@ -187,11 +227,14 @@ public class TripProcess extends FragmentActivity implements OnMapReadyCallback,
                 showCancelDialog();
                 break;
             case R.id.cfmpickup:
+                confirmPickup();
                 confirmpickup.setVisibility(View.GONE);
                 cancel.setVisibility(View.GONE);
                 completeTrip.setVisibility(View.VISIBLE);
+                confirmPickup();
                 break;
             case R.id.completetrip:
+                completedTrip();
                 SharedPreferenceStorage storage = new SharedPreferenceStorage(TripProcess.this);
                 storage.StoreString("trip_status","1");
                 startActivity(new Intent(TripProcess.this,DropOff.class));
@@ -203,4 +246,105 @@ public class TripProcess extends FragmentActivity implements OnMapReadyCallback,
 
         }
     }
+
+    @Override
+    public void onLocationChanged(Location location) {
+        //the detected location is given by the variable location in the signature
+
+        Toast.makeText(this, "Lat : " + location.getLatitude() + " Lng : " +
+                location.getLongitude(), Toast.LENGTH_SHORT).show();
+        Log.d("tag", "onConnected lan long: " + location.getLatitude());
+
+        DatabaseReference availableDriverRef = FirebaseDatabase.getInstance().getReference("availableDriver");
+        GeoFire geofire = new GeoFire(availableDriverRef);
+        geofire.setLocation(firebaseUser.getUid(), new GeoLocation(location.getLatitude(), location.getLongitude()), new GeoFire.CompletionListener() {
+            @Override
+            public void onComplete(String key, DatabaseError error) {
+                Log.d("location", "changed: "+ location.getLatitude());
+            }
+        });
+        Log.d("", "onLocationChanged: latitude" +  location.getLatitude() + "longitude:" + location.getLongitude());
+        Toast.makeText(TripProcess.this,"latitude " +  location.getLatitude() + "longitude:" + location.getLongitude() ,Toast.LENGTH_SHORT).show();
+
+    }
+
+    @Override
+    public void onConnected(@Nullable Bundle bundle) {
+
+    }
+
+    @Override
+    public void onConnectionSuspended(int i) {
+
+
+    }
+
+    @Override
+    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        mGoogleApiClient.connect();
+
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        if (mGoogleApiClient.isConnected()) {
+            mGoogleApiClient.disconnect();
+        }
+
+    }
+
+    public void startLocationService() {
+
+        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            return;
+        }
+        mLocation = LocationServices.FusedLocationApi.getLastLocation(
+                mGoogleApiClient);
+
+        LocationRequest mLocationRequest = LocationRequest.create();
+        mLocationRequest.setPriority(LocationRequest
+                .PRIORITY_BALANCED_POWER_ACCURACY);
+        mLocationRequest.setInterval(10000);
+        mLocationRequest.setFastestInterval(5000);
+        mLocationRequest.setSmallestDisplacement(100);
+        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            return;
+        }
+        LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient,
+                mLocationRequest, this);
+
+
+        if (mLocation != null) {
+            Toast.makeText(this, "Lat : " + mLocation.getLatitude() +
+                            " Lng : " + mLocation.getLongitude(),
+                    Toast.LENGTH_SHORT).show();
+            Log.d("tag", "onConnected lan long: " + mLocation.getLatitude());
+        } else {
+            Toast.makeText(this, "Location not Detected",
+                    Toast.LENGTH_SHORT).show();
+            Log.d("tag", "Location not Detected ");
+        }
+    }
+
 }

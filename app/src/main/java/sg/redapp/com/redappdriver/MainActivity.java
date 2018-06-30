@@ -67,13 +67,13 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
 
     private GoogleApiClient mGoogleApiClient;
     public Location mLocation;
-//    public double latitude = mLocation.getLatitude();
-//    public double longitude = mLocation.getLongitude();
+    public double latitude;
+    public double longitude;
     private String customerId ="";
 
-    public MainActivity(){
-
-    }
+//    public MainActivity(){
+//
+//    }
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

@@ -77,7 +77,7 @@ public class Home extends Fragment {
             public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
                 String uid = user.getUid();
                 String userKey = dataSnapshot.getKey();
-//
+
                 if(userKey.equals(uid)){
                     showDialog();
                 }
@@ -270,9 +270,64 @@ public class Home extends Fragment {
             @Override
             public void onClick(View v) {
                 customerRequestRef.child(user.getUid()).child("status").setValue(true);
-//                firebaseDatabase.getReference().child("availableDriver").child(user.getUid()).removeValue();
+                firebaseDatabase.getReference().child("availableDriver").child(user.getUid()).removeValue();
+                DatabaseReference tripRef = firebaseDatabase.getReference().child("trip").child(user.getUid());
+                customerRequestRef.addChildEventListener(new ChildEventListener() {
+                    @Override
+                    public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+                        String uid = user.getUid();
+                        String userKey = dataSnapshot.getKey();
+//
+                        if(userKey.equals(uid)){
+                            PassengerRequest passengerRequest = dataSnapshot.getValue(PassengerRequest.class);
+                            String destinationName  = passengerRequest.getDestinationName();
+                            String name  = passengerRequest.getName();
+                            double pickupLatitude  = passengerRequest.getPickupLatitude();
+                            double pickupLongitude  = passengerRequest.getPickupLongitude();
+                            String  pickupName  = passengerRequest.getPickupName();
+                            double price  = passengerRequest.getPrice();
+                            String  serviceType  = passengerRequest.getServiceType();
+                            String vehicleModel  = passengerRequest.getVehicleModel();
+                            String vehicleNumber  = passengerRequest.getVehicleNumber();
+                            Log.d("pasenger request", "" + serviceType);
+
+                            tripRef.child("destinationName").setValue(destinationName);
+                            tripRef.child("name").setValue(name);
+                            tripRef.child("pickupLatitude").setValue(pickupLatitude);
+                            tripRef.child("pickupLongtitude").setValue(pickupLongitude);
+                            tripRef.child("pickupName").setValue(pickupName);
+                            tripRef.child("price").setValue(price);
+                            tripRef.child("serviceType").setValue(serviceType);
+                            tripRef.child("vehicleModel").setValue(vehicleModel);
+                            tripRef.child("vehicleNumber").setValue(vehicleNumber);
+
+                        }
+
+                    }
+
+                    @Override
+                    public void onChildChanged(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+
+                    }
+
+                    @Override
+                    public void onChildRemoved(@NonNull DataSnapshot dataSnapshot) {
+
+                    }
+
+                    @Override
+                    public void onChildMoved(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                    }
+                });
+
 //                MainActivity ma = new MainActivity();
-                DatabaseReference workingDriverRef = firebaseDatabase.getReference().child("workingDriver");
+//                DatabaseReference workingDriverRef = firebaseDatabase.getReference().child("workingDriver");
 //                GeoFire geofire = new GeoFire(workingDriverRef);
 //                geofire.setLocation(user.getUid(), new GeoLocation(ma.latitude, ma.longitude), new GeoFire.CompletionListener() {
 //                    @Override
