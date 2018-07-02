@@ -118,6 +118,9 @@ public class Home extends Fragment {
         profile = view.findViewById(R.id.userimage);
         referral = view.findViewById(R.id.referral);
         backtomap = view.findViewById(R.id.backtomap);
+
+        backtomap.setVisibility(View.INVISIBLE);
+
         backtomap.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

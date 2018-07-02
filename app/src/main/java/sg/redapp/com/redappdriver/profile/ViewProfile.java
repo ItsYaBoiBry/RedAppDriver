@@ -130,7 +130,7 @@ public class ViewProfile extends AppCompatActivity {
                     countryCode.setText("+65");
                     phone.setText(userList.getPhone_number());
                     serviceType.setText(userList.getType_of_service());
-                    name.setText(String.format("%s %s", firstName.getText().toString(), carPlate.getText().toString()));
+                    name.setText(String.format("%s", firstName.getText().toString()));
                     rating.setText("4.2");
                     vehicleNum.setText(userList.getUserCarPlate());
                 }

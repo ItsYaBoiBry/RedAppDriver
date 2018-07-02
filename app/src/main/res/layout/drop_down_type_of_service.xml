@@ -9,6 +9,7 @@
     <android.support.v7.widget.AppCompatCheckBox
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:buttonTint="@color/black"
         android:gravity="center"
         android:id="@+id/serviceType_tow_accident"
         android:text="Tow (Accident)"
@@ -17,6 +18,7 @@
     <android.support.v7.widget.AppCompatCheckBox
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:buttonTint="@color/black"
         android:gravity="center"
         android:id="@+id/serviceType_tow_breakdown"
         android:text="Tow (Breakdown)"
@@ -26,6 +28,7 @@
     <android.support.v7.widget.AppCompatCheckBox
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:buttonTint="@color/black"
         android:gravity="center"
         android:id="@+id/serviceType_tyre_mending"
         android:text="Tyre Mending"
@@ -35,6 +38,7 @@
     <android.support.v7.widget.AppCompatCheckBox
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:buttonTint="@color/black"
         android:gravity="center"
         android:id="@+id/serviceType_spare_tyre_replacement"
         android:text="Spare Tyre Replacement"
@@ -45,6 +49,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center"
+        android:buttonTint="@color/black"
         android:id="@+id/serviceType_battery_jump_start"
         android:text="Battery Jump Start"
         android:textSize="16dp"
@@ -53,6 +58,7 @@
     <android.support.v7.widget.AppCompatCheckBox
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:buttonTint="@color/black"
         android:gravity="center"
         android:id="@+id/serviceType_battery_replacement"
         android:text="Battery Replacement"
@@ -62,6 +68,7 @@
     <android.support.v7.widget.AppCompatCheckBox
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:buttonTint="@color/black"
         android:gravity="center"
         android:id="@+id/serviceType_other"
         android:text="Others (Unsure)"
