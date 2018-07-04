@@ -1,10 +1,15 @@
 package sg.redapp.com.redappdriver;
 
 import android.Manifest;
+import android.app.Dialog;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.location.Address;
+import android.location.Geocoder;
 import android.location.Location;
 import android.os.Bundle;
+import android.os.CountDownTimer;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.NavigationView;
@@ -21,6 +26,9 @@ import android.support.v7.widget.SwitchCompat;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.MenuItem;
+import android.view.View;
+import android.view.Window;
+import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -32,6 +40,7 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.maps.model.LatLng;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.ChildEventListener;
@@ -41,13 +50,19 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import java.io.IOException;
+import java.util.List;
+import java.util.Locale;
+
 import sg.redapp.com.redappdriver.Classes.AvailableDriver;
+import sg.redapp.com.redappdriver.Classes.PassengerRequest;
 import sg.redapp.com.redappdriver.HomeFragments.FAQ;
 import sg.redapp.com.redappdriver.HomeFragments.History;
 import sg.redapp.com.redappdriver.HomeFragments.Home;
 import sg.redapp.com.redappdriver.HomeFragments.Settings;
 import sg.redapp.com.redappdriver.HomeFragments.Support;
 import sg.redapp.com.redappdriver.HomeFragments.Wallet;
+import sg.redapp.com.redappdriver.functions.SharedPreferenceStorage;
 import sg.redapp.com.redappdriver.login.ActivityStartPage;
 
 
@@ -59,22 +74,22 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     TextView onlineStatus;
     SwitchCompat setOnline;
 
-    // TODO: Task 1 - Declare Firebase variables
+    SharedPreferenceStorage storage;
+
     private FirebaseDatabase firebaseDatabase;
     private FirebaseAuth firebaseAuth;
     private FirebaseUser user;
     private DatabaseReference availableDriverListRef;
-
     private GoogleApiClient mGoogleApiClient;
     private Location mLocation;
-    private String customerId ="";
+    private String customerId = "";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        // TODO: Task 2: Get Firebase database instance and reference
-        checkpermission();
+
+
         firebaseDatabase = FirebaseDatabase.getInstance();
         firebaseAuth = FirebaseAuth.getInstance();
         user = firebaseAuth.getCurrentUser();
@@ -84,13 +99,12 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         assert user != null;
         DatabaseReference userId = userData.child(user.getUid());
         DatabaseReference onlineStatus = userId.child("online_status");
-//        getAssignedCustomer();
-
         onlineStatus.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                Boolean value = dataSnapshot.getValue(Boolean.class);
-                if (value) {
+                Log.e("ONLINE STATUS",String.valueOf(dataSnapshot.getValue()));
+                String value = String.valueOf(dataSnapshot.getValue());
+                if (value.equals("true")) {
                     setOnline.setChecked(true);
 
                 } else {
@@ -103,11 +117,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
 
             }
         });
-
         availableDriverListRef = firebaseDatabase.getReference("availableDriver");
-        configureNavigationDrawer();
-        configureToolbar();
-        configureSwitch();
         toolbartitle = findViewById(R.id.toolbartitle);
         setTitle(getString(R.string.app_logo_name));
         Intent intent = getIntent();
@@ -123,13 +133,16 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                 .addApi(LocationServices.API)
                 .build();
 
+        checkpermission();
+        configureNavigationDrawer();
+        configureToolbar();
+        configureSwitch();
     }
 
     @Override
     public void onConnected(@Nullable Bundle bundle) {
 
     }
-
 
     @Override
     public void onLocationChanged(Location location) {
@@ -144,11 +157,11 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         geofire.setLocation(user.getUid(), new GeoLocation(location.getLatitude(), location.getLongitude()), new GeoFire.CompletionListener() {
             @Override
             public void onComplete(String key, DatabaseError error) {
-                Log.d("location", "changed: "+ location.getLatitude());
+                Log.d("location", "changed: " + location.getLatitude());
             }
         });
-        Log.d("", "onLocationChanged: latitude" +  location.getLatitude() + "longitude:" + location.getLongitude());
-        Toast.makeText(MainActivity.this,"latitude " +  location.getLatitude() + "longitude:" + location.getLongitude() ,Toast.LENGTH_SHORT).show();
+        Log.d("", "onLocationChanged: latitude" + location.getLatitude() + "longitude:" + location.getLongitude());
+        Toast.makeText(MainActivity.this, "latitude " + location.getLatitude() + "longitude:" + location.getLongitude(), Toast.LENGTH_SHORT).show();
 
     }
 
@@ -167,6 +180,42 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     protected void onStart() {
         super.onStart();
         mGoogleApiClient.connect();
+        DatabaseReference customerRequestRef = firebaseDatabase.getReference().child("passengerRequest");
+        customerRequestRef.addChildEventListener(new ChildEventListener() {
+            @Override
+            public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+                String uid = user.getUid();
+                String userKey = dataSnapshot.getKey();
+
+                if (userKey.equals(uid)) {
+                    Log.e("DRIVER IN DISTRESS",String.valueOf(dataSnapshot.child("status").getValue()));
+                    if(String.valueOf(dataSnapshot.child("status").getValue()).equals("pending")){
+                        showDialog();
+                    }
+
+                }
+            }
+
+            @Override
+            public void onChildChanged(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+
+            }
+
+            @Override
+            public void onChildRemoved(@NonNull DataSnapshot dataSnapshot) {
+
+            }
+
+            @Override
+            public void onChildMoved(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        });
 
     }
 
@@ -180,6 +229,9 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         String uid = intent.getStringExtra("uid");
         DatabaseReference ref = FirebaseDatabase.getInstance().getReference("availableDriver");
         GeoFire geofire = new GeoFire(ref);
+
+
+
 //        geofire.removeLocation(uid);
     }
 
@@ -207,7 +259,9 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
             onlineStatus.setValue(true);
 
             Log.e("Online Status: ", "Online");
+
         } else {
+
             onlineStatus.setText("offline\u2022 ");
             onlineStatus.setTextColor(getResources().getColor(R.color.darkgrey));
             Log.e("Online Status: ", "Offline\u2022 ");
@@ -234,6 +288,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                     user = firebaseAuth.getCurrentUser();
                     DatabaseReference availableDriverRef = FirebaseDatabase.getInstance().getReference("availableDriver");
                     GeoFire geofire = new GeoFire(availableDriverListRef);
+
 //                    geofire.setLocation(user.getUid(), new GeoLocation(mLocation.getLatitude(), mLocation.getLongitude()), new GeoFire.CompletionListener() {
 //                        @Override
 //                        public void onComplete(String key, DatabaseError error) {
@@ -267,6 +322,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                     DatabaseReference userid = userData.child(user.getUid());
                     DatabaseReference onlineStatus = userid.child("online_status");
                     onlineStatus.setValue(false);
+                    availableDriverListRef.child(uid).removeValue();
                 }
             }
         });
@@ -444,9 +500,167 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
             Log.d("tag", "Location not Detected ");
         }
     }
-//    public void getAssignedCustomer(){
+
+    public void showDialog() {
+        final Dialog dialog = new Dialog(MainActivity.this);
+        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        dialog.setCancelable(false);
+        dialog.setContentView(R.layout.new_request_dialog_layout);
+        TextView userName = dialog.findViewById(R.id.userName);
+        TextView userOrigin = dialog.findViewById(R.id.origin);
+        TextView userDestination = dialog.findViewById(R.id.destination);
+        TextView userServiceType = dialog.findViewById(R.id.pickupServiceType);
+        TextView amount = dialog.findViewById(R.id.amount);
+        TextView timer = dialog.findViewById(R.id.timer);
+        Button reject = dialog.findViewById(R.id.reject);
+        Button accept = dialog.findViewById(R.id.accept);
+        DatabaseReference customerRequestRef = firebaseDatabase.getReference().child("passengerRequest");
+        customerRequestRef.addChildEventListener(new ChildEventListener() {
+            @Override
+            public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+                String uid = user.getUid();
+                String userKey = dataSnapshot.getKey();
 //
-//        DatabaseReference assignedCustomerRef = FirebaseDatabase.getInstance().getReference().child("Users").child("Drivers").child();
-//        String driverId = FirebaseAuth.getInstance().getCurrentUser().getUid();
-//    }
+                if (userKey.equals(uid)) {
+
+                    PassengerRequest passengerRequest = dataSnapshot.getValue(PassengerRequest.class);
+                    String destinationName = passengerRequest.getDestinationName();
+                    String name = passengerRequest.getName();
+                    String pickupName = passengerRequest.getPickupName();
+                    double price = passengerRequest.getPrice();
+                    String serviceType = passengerRequest.getServiceType();
+                    Log.d("pasenger request", "" + serviceType);
+                    userName.setText(name);
+                    userOrigin.setText(pickupName);
+                    userDestination.setText(destinationName);
+                    userServiceType.setText(serviceType);
+                    amount.setText("" + price);
+
+                }
+
+            }
+
+            @Override
+            public void onChildChanged(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+
+            }
+
+            @Override
+            public void onChildRemoved(@NonNull DataSnapshot dataSnapshot) {
+
+            }
+
+            @Override
+            public void onChildMoved(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        });
+
+        new CountDownTimer(20000, 1000) { // adjust the milli seconds here
+
+            public void onTick(long millisUntilFinished) {
+
+                timer.setText(String.valueOf(millisUntilFinished / 1000));
+            }
+
+            public void onFinish() {
+                dialog.dismiss();
+            }
+        }.start();
+
+        reject.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                customerRequestRef.child(user.getUid()).child("status").setValue("rejected");
+                dialog.dismiss();
+            }
+        });
+        accept.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                customerRequestRef.child(user.getUid()).child("status").setValue("accepted");
+                firebaseDatabase.getReference().child("availableDriver").child(user.getUid()).removeValue();
+                DatabaseReference tripRef = firebaseDatabase.getReference().child("trip").child(user.getUid());
+                customerRequestRef.addChildEventListener(new ChildEventListener() {
+                    @Override
+                    public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+                        String uid = user.getUid();
+                        String userKey = dataSnapshot.getKey();
+//
+                        if (userKey.equals(uid)) {
+                            PassengerRequest passengerRequest = dataSnapshot.getValue(PassengerRequest.class);
+                            String destinationName = passengerRequest.getDestinationName();
+                            String name = passengerRequest.getName();
+                            double pickupLatitude = passengerRequest.getPickupLatitude();
+                            double pickupLongitude = passengerRequest.getPickupLongitude();
+                            String pickupName = passengerRequest.getPickupName();
+                            double price = passengerRequest.getPrice();
+                            String serviceType = passengerRequest.getServiceType();
+                            String vehicleModel = passengerRequest.getVehicleModel();
+                            String vehicleNumber = passengerRequest.getVehicleNumber();
+                            Log.d("passenger request", "" + serviceType);
+                            Log.e("passenger uid", passengerRequest.getPassengeruid());
+
+                            tripRef.child("passenger_uid").setValue(passengerRequest.getPassengeruid());
+                            tripRef.child("destinationName").setValue(destinationName);
+                            tripRef.child("name").setValue(name);
+                            tripRef.child("pickupLatitude").setValue(pickupLatitude);
+                            tripRef.child("pickupLongtitude").setValue(pickupLongitude);
+                            tripRef.child("pickupName").setValue(pickupName);
+                            tripRef.child("price").setValue(price);
+                            tripRef.child("serviceType").setValue(serviceType);
+                            tripRef.child("vehicleModel").setValue(vehicleModel);
+                            tripRef.child("vehicleNumber").setValue(vehicleNumber);
+
+                        }
+                    }
+
+                    @Override
+                    public void onChildChanged(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+
+                    }
+
+                    @Override
+                    public void onChildRemoved(@NonNull DataSnapshot dataSnapshot) {
+
+                    }
+
+                    @Override
+                    public void onChildMoved(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                    }
+                });
+
+//                MainActivity ma = new MainActivity();
+//                DatabaseReference workingDriverRef = firebaseDatabase.getReference().child("workingDriver");
+//                GeoFire geofire = new GeoFire(workingDriverRef);
+//                geofire.setLocation(user.getUid(), new GeoLocation(ma.latitude, ma.longitude), new GeoFire.CompletionListener() {
+//                    @Override
+//                    public void onComplete(String key, DatabaseError error) {
+//
+//                    }
+//                });
+                storage = new SharedPreferenceStorage(MainActivity.this);
+                storage.StoreString("trip_status", "2");
+                startActivity(new Intent(MainActivity.this, TripProcess.class));
+                dialog.dismiss();
+            }
+        });
+
+        dialog.show();
+
+    }
+
+
+
 }

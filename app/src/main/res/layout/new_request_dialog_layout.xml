@@ -115,6 +115,19 @@
             android:layout_height="wrap_content"
             android:id="@+id/amount"
             android:text="$234.00"/>
+        <TextView
+            android:layout_marginTop="10dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/pinkred"
+            android:text="Vehicle"
+            android:textSize="15sp"/>
+        <TextView
+            android:textSize="17sp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/brand"
+            android:text="Honda"/>
         <LinearLayout
             android:layout_marginTop="30dp"
             android:weightSum="2"

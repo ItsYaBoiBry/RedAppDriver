@@ -43,6 +43,7 @@ dependencies {
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
     //noinspection GradleCompatible
     implementation 'com.google.android.gms:play-services-maps:15.0.1'
+    implementation 'org.slf4j:slf4j-nop:1.7.25'
 
     //firebase
     implementation 'com.google.firebase:firebase-core:16.0.1'

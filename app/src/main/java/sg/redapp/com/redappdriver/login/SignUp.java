@@ -34,6 +34,7 @@ import java.util.ArrayList;
 import java.util.Objects;
 
 import sg.redapp.com.redappdriver.Classes.API;
+import sg.redapp.com.redappdriver.MainActivity;
 import sg.redapp.com.redappdriver.R;
 import sg.redapp.com.redappdriver.WebView;
 
@@ -48,7 +49,7 @@ public class SignUp extends AppCompatActivity {
     LinearLayout loading;
     private FirebaseDatabase firebaseDatabase;
     private FirebaseUser user;
-    ArrayList arrayList = new ArrayList<String>();
+//    ArrayList arrayList = new ArrayList<String>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -130,21 +131,21 @@ public class SignUp extends AppCompatActivity {
                     public void onClick(View view) {
                         DatabaseReference driverRef = firebaseDatabase.getReference().child("user").child("driver");
 
-                        if(cbTowAccident.isChecked()){
-                            arrayList.add(cbTowAccident.getText().toString());
-                        }else if(cbTowBreakdown.isChecked()){
-                            arrayList.add(cbTowBreakdown.getText().toString());
-                        }else if(cbTyreManding.isChecked()){
-                            arrayList.add(cbTyreManding.getText().toString());
-                        }else if(cbSpareTyreReplacement.isChecked()){
-                            arrayList.add(cbSpareTyreReplacement.getText().toString());
-                        }else if(cbBatteryJumpStart.isChecked()){
-                            arrayList.add(cbBatteryJumpStart.getText().toString());
-                        }else if(cbBatteryReplacement.isChecked()){
-                            arrayList.add(cbBatteryReplacement.getText().toString());
-                        }else if(cbOthers.isChecked()){
-                            arrayList.add(cbOthers.getText().toString());
-                        }
+//                        if(cbTowAccident.isChecked()){
+//                            arrayList.add(cbTowAccident.getText().toString());
+//                        }else if(cbTowBreakdown.isChecked()){
+//                            arrayList.add(cbTowBreakdown.getText().toString());
+//                        }else if(cbTyreManding.isChecked()){
+//                            arrayList.add(cbTyreManding.getText().toString());
+//                        }else if(cbSpareTyreReplacement.isChecked()){
+//                            arrayList.add(cbSpareTyreReplacement.getText().toString());
+//                        }else if(cbBatteryJumpStart.isChecked()){
+//                            arrayList.add(cbBatteryJumpStart.getText().toString());
+//                        }else if(cbBatteryReplacement.isChecked()){
+//                            arrayList.add(cbBatteryReplacement.getText().toString());
+//                        }else if(cbOthers.isChecked()){
+//                            arrayList.add(cbOthers.getText().toString());
+//                        }
                         dialog.dismiss();
                     }
                 });
@@ -219,9 +220,9 @@ public class SignUp extends AppCompatActivity {
                             DatabaseReference onlineStatus = userid.child("online_status");
                             DatabaseReference inProgress = userid.child("in_progress");
 
-                            for(int i=0; i < arrayList.size(); i++){
-                                userTypeOfService.child(arrayList.get(i).toString());
-                            }
+//                            for(int i=0; i < arrayList.size(); i++){
+//                                userTypeOfService.child(arrayList.get(i).toString());
+//                            }
 
                             DatabaseReference setWallet = database.getReference("wallet");
                             DatabaseReference setWalletUserId = setWallet.child(user.getUid());
@@ -246,8 +247,7 @@ public class SignUp extends AppCompatActivity {
                                     Log.e("email", value);
                                     assert value != null;
                                     if (value.equals("pending")) {
-                                        Toast.makeText(SignUp.this, "Welcome to the driver app! you will need to be accepted before you come and drive with us. Sorry for any inconveniences caused!",
-                                                Toast.LENGTH_LONG).show();
+                                        startActivity(new Intent(SignUp.this, MainActivity.class));
                                     }
                                 }
                                 @Override

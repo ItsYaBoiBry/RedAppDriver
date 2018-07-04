@@ -13,6 +13,7 @@ public class PassengerRequest {
     private double Price;
     private String serviceType;
     private String vehicleModel;
+    private String passengeruid;
     private String vehicleNumber;
 
     public  PassengerRequest(){
@@ -28,6 +29,26 @@ public class PassengerRequest {
         this.serviceType = serviceType;
         this.vehicleModel = vehicleModel;
         this.vehicleNumber = vehicleNumber;
+    }
+    public PassengerRequest(String destinationName, String name, double pickupLatitude, double pickupLongitude,String passengeruid, String pickupName, double price, String serviceType, String vehicleModel, String vehicleNumber) {
+        this.destinationName = destinationName;
+        this.name = name;
+        this.pickupLatitude = pickupLatitude;
+        this.pickupLongitude = pickupLongitude;
+        this.pickupName = pickupName;
+        this.passengeruid = passengeruid;
+        Price = price;
+        this.serviceType = serviceType;
+        this.vehicleModel = vehicleModel;
+        this.vehicleNumber = vehicleNumber;
+    }
+
+    public String getPassengeruid() {
+        return passengeruid;
+    }
+
+    public void setPassengeruid(String passengeruid) {
+        this.passengeruid = passengeruid;
     }
 
     public String getDestinationName() {

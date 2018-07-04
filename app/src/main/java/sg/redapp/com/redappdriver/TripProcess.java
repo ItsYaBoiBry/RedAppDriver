@@ -2,9 +2,15 @@ package sg.redapp.com.redappdriver;
 
 import android.*;
 import android.app.Dialog;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
+import android.location.Address;
+import android.location.Geocoder;
 import android.location.Location;
+import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.CountDownTimer;
 import android.support.annotation.NonNull;
@@ -13,6 +19,7 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 
 import android.os.Bundle;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.Toolbar;
 import android.transition.Explode;
 import android.util.Log;
@@ -39,6 +46,8 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.Polyline;
+import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.ChildEventListener;
@@ -48,8 +57,23 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+
 import de.hdodenhof.circleimageview.CircleImageView;
 import sg.redapp.com.redappdriver.Classes.PassengerRequest;
+import sg.redapp.com.redappdriver.functions.HttpRequest;
 import sg.redapp.com.redappdriver.functions.SharedPreferenceStorage;
 
 public class TripProcess extends FragmentActivity implements OnMapReadyCallback, View.OnClickListener, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener {
@@ -57,6 +81,7 @@ public class TripProcess extends FragmentActivity implements OnMapReadyCallback,
     TextView name, destination;
     ImageButton message, phone;
     Toolbar toolbar;
+    ImageButton navigate;
     Button cancel, confirmpickup, completeTrip;
     ImageButton messageUser, userPhone;
     LinearLayout user;
@@ -84,6 +109,8 @@ public class TripProcess extends FragmentActivity implements OnMapReadyCallback,
         firebaseAuth = FirebaseAuth.getInstance();
         firebaseUser = firebaseAuth.getCurrentUser();
 
+
+        navigate = findViewById(R.id.navigate);
         user = findViewById(R.id.user);
         name = findViewById(R.id.name);
         name.setText("Bryan Low");
@@ -98,7 +125,7 @@ public class TripProcess extends FragmentActivity implements OnMapReadyCallback,
         userPhone = findViewById(R.id.userPhone);
         destination = findViewById(R.id.textViewDestination);
 
-        DatabaseReference customerRequestRef = firebaseDatabase.getReference().child("passengerRequest");
+        DatabaseReference customerRequestRef = firebaseDatabase.getReference().child("trip");
         customerRequestRef.addChildEventListener(new ChildEventListener() {
             @Override
             public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
@@ -176,20 +203,63 @@ public class TripProcess extends FragmentActivity implements OnMapReadyCallback,
         DatabaseReference trip = firebaseDatabase.getReference().child("trip").child(firebaseUser.getUid());
 
 
-
         trip.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                        Log.e("LATITUDE:",dataSnapshot.child("pickupLatitude").getValue()+"");
-                        Log.e("LONGITUDE:",dataSnapshot.child("pickupLongtitude").getValue()+"");
+                Log.e("LATITUDE:", dataSnapshot.child("pickupLatitude").getValue() + "");
+                Log.e("LONGITUDE:", dataSnapshot.child("pickupLongtitude").getValue() + "");
+                Log.e("DESTINATION:", dataSnapshot.child("destinationName").getValue() + "");
+                Log.e("DESTINATION:", dataSnapshot.child("pickupName").getValue() + "");
 
 //                String pickupLatitude = (String)dataSnapshot.child("pickupLatitude").getValue();
 //                String pickupLongitude =(String)dataSnapshot.child("pickupLongitude").getValue();
 //                Log.e("latitude", pickupLatitude + "");
 //                Log.e("longitude", pickupLongitude + "");
-                LatLng location = new LatLng(Double.parseDouble(String.valueOf(dataSnapshot.child("pickupLatitude").getValue())),Double.parseDouble(String.valueOf(dataSnapshot.child("pickupLongtitude").getValue())));
-                mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(location,20.0f));
+                LatLng location = GetLocationFromAddress(TripProcess.this, String.valueOf(dataSnapshot.child("destinationName").getValue()));
+                mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(location, 20.0f));
                 mMap.addMarker(new MarkerOptions().position(location).title(String.valueOf(dataSnapshot.child("destinationName").getValue())));
+                mMap.addMarker(new MarkerOptions().position(new LatLng(Double.parseDouble(String.valueOf(dataSnapshot.child("pickupLatitude").getValue())), Double.parseDouble(String.valueOf(dataSnapshot.child("pickupLongtitude").getValue())))).title(String.valueOf(dataSnapshot.child("pickupName").getValue())));
+//                mMap.addPolyline(new PolylineOptions()
+//                        .add(location, new LatLng(Double.parseDouble(String.valueOf(dataSnapshot.child("pickupLatitude").getValue())), Double.parseDouble(String.valueOf(dataSnapshot.child("pickupLongtitude").getValue()))))
+//                        .width(5)
+//                        .color(Color.RED));
+//                getWaypoints getWaypoints = new getWaypoints();
+//                getWaypoints.execute(String.valueOf(dataSnapshot.child("pickupName").getValue()).replace(" ", "+"), String.valueOf(dataSnapshot.child("destinationName").getValue()).replace(" ", "+"));
+
+
+                navigate.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        final CharSequence[] items = {"Pickup\n" + String.valueOf(dataSnapshot.child("pickupName").getValue()) + "\n", "DropOff\n" + String.valueOf(dataSnapshot.child("destinationName").getValue()) + "\n"};
+                        AlertDialog.Builder builder = new AlertDialog.Builder(TripProcess.this);
+//                builder.setView(R.id.type_of_service);
+                        builder.setItems(items, (dialog, item) -> {
+                            if (items[item].toString().equals("Pickup\n" + String.valueOf(dataSnapshot.child("pickupName").getValue()) + "\n")) {
+                                // Create a Uri from an intent string. Use the result to create an Intent.
+                                String url = "https://www.google.com/maps/dir/?api=1&destination=" + String.valueOf(dataSnapshot.child("pickupName").getValue()) + "&travelmode=driving";
+                                // Create an Intent from gmmIntentUri. Set the action to ACTION_VIEW
+                                Intent mapIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+                                // Make the Intent explicit by setting the Google Maps package
+                                mapIntent.setPackage("com.google.android.apps.maps");
+                                // Attempt to start an activity that can handle the Intent
+                                startActivity(mapIntent);
+                            } else if (items[item].toString().equals("DropOff\n" + String.valueOf(dataSnapshot.child("destinationName").getValue()) + "\n")) {
+                                // Create a Uri from an intent string. Use the result to create an Intent.
+                                String url = "https://www.google.com/maps/dir/?api=1&destination=" + String.valueOf(dataSnapshot.child("destinationName").getValue()) + "&travelmode=driving";
+                                // Create an Intent from gmmIntentUri. Set the action to ACTION_VIEW
+                                Intent mapIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+                                // Make the Intent explicit by setting the Google Maps package
+                                mapIntent.setPackage("com.google.android.apps.maps");
+                                // Attempt to start an activity that can handle the Intent
+                                startActivity(mapIntent);
+                            }
+                        });
+                        AlertDialog alert = builder.create();
+                        alert.show();
+                    }
+                });
+
+
             }
 
             @Override
@@ -198,9 +268,8 @@ public class TripProcess extends FragmentActivity implements OnMapReadyCallback,
             }
         });
 
+
         // Add a marker in Sydney, Australia, and move the camera.
-
-
     }
 
     public void showCancelDialog() {
@@ -238,6 +307,7 @@ public class TripProcess extends FragmentActivity implements OnMapReadyCallback,
         dialog.show();
 
     }
+
 
     public void confirmPickup() {
         DatabaseReference trip = firebaseDatabase.getReference().child("trip").child(firebaseUser.getUid());
@@ -295,6 +365,8 @@ public class TripProcess extends FragmentActivity implements OnMapReadyCallback,
 
         Log.d("", "onLocationChanged: latitude" + location.getLatitude() + "longitude:" + location.getLongitude());
         Toast.makeText(TripProcess.this, "latitude " + location.getLatitude() + "longitude:" + location.getLongitude(), Toast.LENGTH_SHORT).show();
+        LatLng currentlocation = new LatLng(location.getLatitude(), location.getLongitude());
+        mMap.addMarker(new MarkerOptions().position(currentlocation).title(""));
 
     }
 
@@ -375,6 +447,68 @@ public class TripProcess extends FragmentActivity implements OnMapReadyCallback,
                     Toast.LENGTH_SHORT).show();
             Log.d("tag", "Location not Detected ");
         }
+    }
+
+//    public class getWaypoints extends AsyncTask<String, Void, String> {
+//
+//        @Override
+//        protected String doInBackground(String... strings) {
+//            HttpRequest request = new HttpRequest();
+//            return request.GetRequest("https://maps.googleapis.com/maps/api/directions/json?origin=" + strings[0] + "&destination=" + strings[1] + "&key=AIzaSyB9-Ffz2pS0ekVlFR29VJnY6DtYDYXik60");
+//        }
+//
+//        @Override
+//        protected void onPostExecute(String s) {
+//            super.onPostExecute(s);
+//            try {
+//                JSONObject getCoordinates = new JSONObject(s);
+//                Log.e("REQUEST COORDINATES", getCoordinates + "");
+//                JSONArray routes = getCoordinates.getJSONArray("routes");
+//                JSONObject getLegs = routes.getJSONObject(0);
+//                JSONArray legs = getLegs.getJSONArray("legs");
+//                JSONObject gettingSteps = legs.getJSONObject(0);
+//                JSONArray steps = gettingSteps.getJSONArray("steps");
+//                Log.e("STEPS", String.valueOf(steps));
+//                for (int i = 0; i < steps.length(); i++) {
+//                    JSONObject step = steps.getJSONObject(i);
+//                    JSONObject startLocation = step.getJSONObject("start_location");
+//                    JSONObject endLocation = step.getJSONObject("end_location");
+//                    LatLng startLatLng = new LatLng(Double.parseDouble(String.valueOf(startLocation.getString("lat"))), Double.parseDouble(String.valueOf(startLocation.getString("lng"))));
+//                    LatLng endLatLng = new LatLng(Double.parseDouble(String.valueOf(endLocation.getString("lat"))), Double.parseDouble(String.valueOf(endLocation.getString("lng"))));
+//                    mMap.addPolyline(new PolylineOptions()
+//                            .add(startLatLng, endLatLng)
+//                            .width(5)
+//                            .color(Color.RED));
+//                    Log.e("START LOCATIONS", String.valueOf(startLocation.getString("lat")) + " " + String.valueOf(startLocation.getString("lng")));
+//                    Log.e("END LOCATIONS", String.valueOf(endLocation.getString("lat")) + " " + String.valueOf(endLocation.getString("lng")));
+//                }
+//            } catch (JSONException e) {
+//                e.printStackTrace();
+//            }
+//        }
+//    }
+
+    public LatLng GetLocationFromAddress(Context context, String strAddress) {
+        Geocoder coder = new Geocoder(context);
+        List<Address> address;
+        LatLng currentLocation = null;
+        try {
+            address = coder.getFromLocationName(strAddress, 5);
+            if (address == null) {
+                return null;
+            }
+            Address location = address.get(0);
+            location.getLatitude();
+            location.getLongitude();
+
+            currentLocation = new LatLng((double) (location.getLatitude()),
+                    (double) (location.getLongitude()));
+            Log.e("current Locale", String.valueOf(currentLocation));
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return currentLocation;
     }
 
 }
