@@ -107,7 +107,7 @@ public class Support extends Fragment {
         DatabaseReference myRef = database.getReference("feedback");
         DatabaseReference userid = myRef.child(user.getUid() + " (" + currentTime + ")");
         DatabaseReference title = userid.child("title");
-        DatabaseReference message = userid.child("name");
+        DatabaseReference message = userid.child("message");
         DatabaseReference userRole = userid.child("role");
         DatabaseReference date = userid.child("date");
 

@@ -79,7 +79,7 @@ public class Home extends Fragment {
                 String userKey = dataSnapshot.getKey();
 
                 if(userKey.equals(uid)){
-                    showDialog();
+//                    showDialog();
                 }
 
             }
@@ -128,7 +128,6 @@ public class Home extends Fragment {
             }
         });
         checkTrip();
-
         viewProfile = view.findViewById(R.id.viewProfile);
         viewProfile.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -136,8 +135,40 @@ public class Home extends Fragment {
                 startActivity(new Intent(getContext(), ViewProfile.class));
             }
         });
-
         tempsetup();
+
+        DatabaseReference customerRequestRef = firebaseDatabase.getReference().child("passengerRequest");
+        customerRequestRef.addChildEventListener(new ChildEventListener() {
+            @Override
+            public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+                String uid = user.getUid();
+                String userKey = dataSnapshot.getKey();
+
+                if(userKey.equals(uid)){
+                    showDialog();
+                }
+            }
+
+            @Override
+            public void onChildChanged(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+
+            }
+
+            @Override
+            public void onChildRemoved(@NonNull DataSnapshot dataSnapshot) {
+
+            }
+
+            @Override
+            public void onChildMoved(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        });
 
         return view;
     }
@@ -187,7 +218,6 @@ public class Home extends Fragment {
         Glide.with(getContext())
                 .load("https://images.pexels.com/photos/91227/pexels-photo-91227.jpeg?auto=compress&cs=tinysrgb&h=350")
                 .into(profile);
-//        showDialog();
     }
 
     public void showDialog() {
@@ -253,7 +283,7 @@ public class Home extends Fragment {
             }
         });
 
-        new CountDownTimer(5000, 1000) { // adjust the milli seconds here
+        new CountDownTimer(20000, 1000) { // adjust the milli seconds here
 
             public void onTick(long millisUntilFinished) {
 

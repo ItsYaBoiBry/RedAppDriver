@@ -234,12 +234,12 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                     user = firebaseAuth.getCurrentUser();
                     DatabaseReference availableDriverRef = FirebaseDatabase.getInstance().getReference("availableDriver");
                     GeoFire geofire = new GeoFire(availableDriverListRef);
-                    geofire.setLocation(user.getUid(), new GeoLocation(mLocation.getLatitude(), mLocation.getLongitude()), new GeoFire.CompletionListener() {
-                        @Override
-                        public void onComplete(String key, DatabaseError error) {
-
-                        }
-                    });
+//                    geofire.setLocation(user.getUid(), new GeoLocation(mLocation.getLatitude(), mLocation.getLongitude()), new GeoFire.CompletionListener() {
+//                        @Override
+//                        public void onComplete(String key, DatabaseError error) {
+//
+//                        }
+//                    });
 //                    availableDriverRef.child(uid).child("latitude").setValue(mLocation.getLatitude());
 //                    availableDriverRef.child(uid).child("longitude").setValue(mLocation.getLongitude());
 

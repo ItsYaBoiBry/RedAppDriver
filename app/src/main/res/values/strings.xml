@@ -64,4 +64,6 @@
     <string name="report">Report an Issue</string>
     <string name="done">Done</string>
     <string name="start_typing_here_with_dots">Start typing here...</string>
+    <string name="withdraw_money">Withdraw Money</string>
+    <string name="cart_plate_number">Cart Plate Number</string>
 </resources>

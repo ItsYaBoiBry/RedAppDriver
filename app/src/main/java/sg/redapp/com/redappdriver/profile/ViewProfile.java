@@ -122,7 +122,8 @@ public class ViewProfile extends AppCompatActivity {
             public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
                 User userList = dataSnapshot.getValue(User.class);
                 String userKey = dataSnapshot.getKey();
-                if(userKey == user.getUid()){
+                assert userKey != null;
+                if(userKey.equals(user.getUid())){
                     Log.d("user", "onChildAdded: User " + userList.getName());
                     firstName.setText(userList.getName());
                     carPlate.setText(userList.getUserCarPlate());
@@ -165,7 +166,7 @@ public class ViewProfile extends AppCompatActivity {
         save.setVisibility(View.VISIBLE);
         firstName.setEnabled(true);
         carPlate.setEnabled(true);
-        email.setEnabled(true);
+        email.setEnabled(false);
         countryCode.setEnabled(true);
         countryCode.setClickable(true);
         phone.setEnabled(true);
@@ -185,12 +186,15 @@ public class ViewProfile extends AppCompatActivity {
         serviceType.setClickable(false);
         serviceType.setEnabled(false);
         name.setText(String.format("%s", firstName.getText().toString()));
+
         String updateName = name.getText().toString();
         String updateEmail = email.getText().toString();
         String updatePhoneNumber = phone.getText().toString();
         String updateTypeOfService = serviceType.getText().toString();
         String updateCarPlate = carPlate.getText().toString();
         DatabaseReference driverRef = firebaseDatabase.getReference().child("user").child("driver");
+        DatabaseReference name = driverRef.child(user.getUid()).child("name");
+
         User updateUser = new User(updateEmail,updateName,updatePhoneNumber,updateTypeOfService,updateCarPlate);
         driverRef.child(user.getUid()).setValue(updateUser);
     }

@@ -63,9 +63,8 @@ public class TripDetail extends AppCompatActivity {
                     String  pickupName  = passengerRequest.getPickupName();
                     double price  = passengerRequest.getPrice();
                     String  serviceType  = passengerRequest.getServiceType();
-                    String vehicleModel  = passengerRequest.getVehicleModel();
                     String vehicleNumber  = passengerRequest.getVehicleNumber();
-                    Log.d("pasenger request", "" + serviceType);
+                    Log.d("passenger request", "" + serviceType);
                     userName.setText(name);
                     userCarPlate.setText(vehicleNumber);
                     typeOfService.setText(serviceType);

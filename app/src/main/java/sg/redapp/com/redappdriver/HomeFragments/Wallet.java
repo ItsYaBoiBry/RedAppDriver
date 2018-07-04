@@ -1,14 +1,21 @@
 package sg.redapp.com.redappdriver.HomeFragments;
 
 
+import android.app.Dialog;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -19,7 +26,11 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.Objects;
 
+import sg.redapp.com.redappdriver.DropOff;
 import sg.redapp.com.redappdriver.R;
 
 import static android.content.Context.LAYOUT_INFLATER_SERVICE;
@@ -28,9 +39,11 @@ import static android.content.Context.LAYOUT_INFLATER_SERVICE;
  * A simple {@link Fragment} subclass.
  */
 public class Wallet extends Fragment {
-TextView credit, date, amount;
-LinearLayout transactionhistory;
+    TextView credit, date, amount;
+    LinearLayout transactionhistory;
+    Button withdraw;
     private FirebaseAuth mAuth;
+    ArrayList<ArrayList<String>> transactions;
 
     public Wallet() {
         // Required empty public constructor
@@ -43,6 +56,7 @@ LinearLayout transactionhistory;
         View view = inflater.inflate(R.layout.fragment_wallet, container, false);
         credit = view.findViewById(R.id.credit);
         transactionhistory = view.findViewById(R.id.transactionhistory);
+        withdraw = view.findViewById(R.id.withdraw);
         mAuth = FirebaseAuth.getInstance();
         FirebaseUser user = mAuth.getCurrentUser();
         assert user != null;
@@ -59,31 +73,92 @@ LinearLayout transactionhistory;
 
             }
         });
+        withdraw.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                final Dialog dialog = new Dialog(Objects.requireNonNull(getContext()));
+                dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+                dialog.setCancelable(false);
+                dialog.setContentView(R.layout.withdraw_money);
+
+                EditText withdraw_amount = dialog.findViewById(R.id.etwihdraw);
+                Button withdraw = dialog.findViewById(R.id.withdraw);
+                Button cancel = dialog.findViewById(R.id.cancel);
+
+                withdraw.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        double withdrawing_amount = Double.parseDouble(withdraw_amount.getText().toString());
+                        double current_amount = Double.parseDouble(credit.getText().toString());
+                        if(withdrawing_amount > current_amount){
+                            Toast.makeText(getContext(), "You cannot withdraw this amount", Toast.LENGTH_LONG).show();
+                            dialog.dismiss();
+                        }else{
+                            double final_amount = current_amount - withdrawing_amount;
+                            Date currentTime = Calendar.getInstance().getTime();
+                            DatabaseReference history = FirebaseDatabase.getInstance().getReference("wallet").child(user.getUid()).child("history").child(String.valueOf(currentTime));
+                            DatabaseReference draw_amount = history.child("amount");
+                            DatabaseReference draw_reason = history.child("type");
+
+                            draw_reason.setValue("Withdrawal");
+                            draw_amount.setValue(withdrawing_amount);
+                            amount.setValue(final_amount);
+                            dialog.dismiss();
+                        }
+
+                    }
+                });
+                cancel.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        dialog.dismiss();
+                    }
+                });
+                dialog.show();
+            }
+        });
 
 
-        ArrayList<ArrayList<String>> transactions = new ArrayList<>();
-        ArrayList<String> transaction1 = new ArrayList<>();
-        transaction1.add("17-12-12121");
-        transaction1.add("$10.00");
-        transactions.add(transaction1);
-        ArrayList<String> transaction2 = new ArrayList<>();
-        transaction2.add("17-17-1212");
-        transaction2.add("$432.00");
-        transactions.add(transaction2);
-        ArrayList<String> transaction3 = new ArrayList<>();
-        transaction3.add("17-53-12121");
-        transaction3.add("$13.04");
-        transactions.add(transaction3);
+        DatabaseReference history = FirebaseDatabase.getInstance().getReference("wallet").child(user.getUid()).child("history");
 
-        for (int i = 0; i < transactions.size();i++){
-            ArrayList<String> qn = transactions.get(i);
-            transactionhistory.addView(initView(qn.get(0),qn.get(1)));
-        }
+        history.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                transactions = new ArrayList<>();
+                transactionhistory.removeAllViews();
+                for (DataSnapshot postSnapshot : dataSnapshot.getChildren()) {
+                    ArrayList<String> transaction = new ArrayList<>();
+                    transaction.add(String.valueOf(postSnapshot.getKey()));
+                    transaction.add("$" + String.valueOf(postSnapshot.child("amount").getValue()));
+
+                    Log.e("date", String.valueOf(postSnapshot.getKey()));
+                    Log.e("amount", String.valueOf(postSnapshot.child("amount").getValue()));
+
+                    transactions.add(transaction);
+                }
+
+                for (int i = 0; i < transactions.size(); i++) {
+                    ArrayList<String> qn = transactions.get(i);
+                    transactionhistory.addView(initView(qn.get(0), qn.get(1)));
+                }
+
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        });
 
         return view;
     }
 
-    public View initView(String getDate, String getAmount){
+    @Override
+    public void onStart() {
+        super.onStart();
+
+    }
+    public View initView(String getDate, String getAmount) {
         LayoutInflater inflater = (LayoutInflater) getContext().getSystemService(LAYOUT_INFLATER_SERVICE);
         assert inflater != null;
         View view = inflater.inflate(R.layout.wallet_transaction_item, null);
@@ -91,7 +166,6 @@ LinearLayout transactionhistory;
         amount = view.findViewById(R.id.amount);
         date.setText(getDate);
         amount.setText(getAmount);
-
         return view;
     }
 

@@ -46,6 +46,7 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 import sg.redapp.com.redappdriver.Classes.PassengerRequest;
@@ -104,17 +105,19 @@ public class TripProcess extends FragmentActivity implements OnMapReadyCallback,
                 String uid = firebaseUser.getUid();
                 String userKey = dataSnapshot.getKey();
 //
-                if(userKey.equals(uid)){
+                if (userKey.equals(uid)) {
                     PassengerRequest passengerRequest = dataSnapshot.getValue(PassengerRequest.class);
-                    String destinationName  = passengerRequest.getDestinationName();
-                    String name  = passengerRequest.getName();
-                    double pickupLatitude  = passengerRequest.getPickupLatitude();
-                    double pickupLongitude  = passengerRequest.getPickupLongitude();
-                    String  pickupName  = passengerRequest.getPickupName();
-                    double price  = passengerRequest.getPrice();
-                    String  serviceType  = passengerRequest.getServiceType();
-                    String vehicleModel  = passengerRequest.getVehicleModel();
-                    String vehicleNumber  = passengerRequest.getVehicleNumber();
+                    String destinationName = passengerRequest.getDestinationName();
+                    String names = passengerRequest.getName();
+                    name.setText(names);
+                    double pickupLatitude = passengerRequest.getPickupLatitude();
+                    double pickupLongitude = passengerRequest.getPickupLongitude();
+                    String pickupName = passengerRequest.getPickupName();
+
+                    double price = passengerRequest.getPrice();
+                    String serviceType = passengerRequest.getServiceType();
+                    String vehicleModel = passengerRequest.getVehicleModel();
+                    String vehicleNumber = passengerRequest.getVehicleNumber();
                     Log.d("pasenger request", "" + serviceType);
                     destination.setText(destinationName);
                 }
@@ -163,19 +166,44 @@ public class TripProcess extends FragmentActivity implements OnMapReadyCallback,
                 .addOnConnectionFailedListener(this)
                 .addApi(LocationServices.API)
                 .build();
-
     }
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
         mMap.setMinZoomPreference(12);
+
+        DatabaseReference trip = firebaseDatabase.getReference().child("trip").child(firebaseUser.getUid());
+
+
+
+        trip.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                        Log.e("LATITUDE:",dataSnapshot.child("pickupLatitude").getValue()+"");
+                        Log.e("LONGITUDE:",dataSnapshot.child("pickupLongtitude").getValue()+"");
+
+//                String pickupLatitude = (String)dataSnapshot.child("pickupLatitude").getValue();
+//                String pickupLongitude =(String)dataSnapshot.child("pickupLongitude").getValue();
+//                Log.e("latitude", pickupLatitude + "");
+//                Log.e("longitude", pickupLongitude + "");
+                LatLng location = new LatLng(Double.parseDouble(String.valueOf(dataSnapshot.child("pickupLatitude").getValue())),Double.parseDouble(String.valueOf(dataSnapshot.child("pickupLongtitude").getValue())));
+                mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(location,20.0f));
+                mMap.addMarker(new MarkerOptions().position(location).title(String.valueOf(dataSnapshot.child("destinationName").getValue())));
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        });
+
         // Add a marker in Sydney, Australia, and move the camera.
-        LatLng sydney = new LatLng(-34, 151);
-        mMap.addMarker(new MarkerOptions().position(sydney).title("Marker in Sydney"));
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
+
+
     }
-    public void showCancelDialog(){
+
+    public void showCancelDialog() {
         final Dialog dialog = new Dialog(TripProcess.this);
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
         dialog.setCancelable(false);
@@ -194,7 +222,7 @@ public class TripProcess extends FragmentActivity implements OnMapReadyCallback,
                 geofire.setLocation(firebaseUser.getUid(), new GeoLocation(mLocation.getLatitude(), mLocation.getLongitude()), new GeoFire.CompletionListener() {
                     @Override
                     public void onComplete(String key, DatabaseError error) {
-                        Log.d("location", "changed: "+ mLocation.getLatitude());
+                        Log.d("location", "changed: " + mLocation.getLatitude());
                     }
                 });
                 dialog.dismiss();
@@ -211,18 +239,19 @@ public class TripProcess extends FragmentActivity implements OnMapReadyCallback,
 
     }
 
-    public void confirmPickup(){
+    public void confirmPickup() {
         DatabaseReference trip = firebaseDatabase.getReference().child("trip").child(firebaseUser.getUid());
         trip.child("status").setValue("confirm pickup");
     }
-    public void completedTrip(){
+
+    public void completedTrip() {
         DatabaseReference trip = firebaseDatabase.getReference().child("trip").child(firebaseUser.getUid());
         trip.child("status").setValue("complete pickup");
     }
 
     @Override
     public void onClick(View v) {
-        switch (v.getId()){
+        switch (v.getId()) {
             case R.id.cancel:
                 showCancelDialog();
                 break;
@@ -236,12 +265,12 @@ public class TripProcess extends FragmentActivity implements OnMapReadyCallback,
             case R.id.completetrip:
                 completedTrip();
                 SharedPreferenceStorage storage = new SharedPreferenceStorage(TripProcess.this);
-                storage.StoreString("trip_status","1");
-                startActivity(new Intent(TripProcess.this,DropOff.class));
+                storage.StoreString("trip_status", "1");
+                startActivity(new Intent(TripProcess.this, DropOff.class));
                 finish();
                 break;
             case R.id.messageUser:
-                startActivity(new Intent(TripProcess.this,Messages.class));
+                startActivity(new Intent(TripProcess.this, Messages.class));
                 break;
 
         }
@@ -260,11 +289,12 @@ public class TripProcess extends FragmentActivity implements OnMapReadyCallback,
         geofire.setLocation(firebaseUser.getUid(), new GeoLocation(location.getLatitude(), location.getLongitude()), new GeoFire.CompletionListener() {
             @Override
             public void onComplete(String key, DatabaseError error) {
-                Log.d("location", "changed: "+ location.getLatitude());
+                Log.d("location", "changed: " + location.getLatitude());
             }
         });
-        Log.d("", "onLocationChanged: latitude" +  location.getLatitude() + "longitude:" + location.getLongitude());
-        Toast.makeText(TripProcess.this,"latitude " +  location.getLatitude() + "longitude:" + location.getLongitude() ,Toast.LENGTH_SHORT).show();
+
+        Log.d("", "onLocationChanged: latitude" + location.getLatitude() + "longitude:" + location.getLongitude());
+        Toast.makeText(TripProcess.this, "latitude " + location.getLatitude() + "longitude:" + location.getLongitude(), Toast.LENGTH_SHORT).show();
 
     }
 
