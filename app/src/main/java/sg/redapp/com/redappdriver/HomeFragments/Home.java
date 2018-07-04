@@ -191,6 +191,7 @@ public class Home extends Fragment {
                     name.setText(userList.getName());
                     Log.d("Gunjan","CAR PLATE VALUE "+ userList.getUserCarPlate()+"");
                     rating.setText(userList.getUserCarPlate());
+                    Glide.with(getActivity()).load(userList.getProfileImageUrl()).into(profile);
                 }
 
             }
@@ -396,6 +397,7 @@ public class Home extends Fragment {
                 if(userKey == user.getUid()){
                     Log.d("user", "onChildAdded: User " + userList.getName());
                     name.setText(userList.getName());
+                    Glide.with(getActivity()).load(userList.getProfileImageUrl()).into(profile);
                 }
 
             }

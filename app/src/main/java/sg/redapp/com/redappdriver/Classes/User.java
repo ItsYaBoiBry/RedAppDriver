@@ -12,8 +12,24 @@ public class User {
     private String userCarPlate;
     private String role;
     private String type_of_service;
+    private String profileImageUrl;
 
     public User() {
+    }
+
+    public User(String approve, String country_code, String email, boolean in_progress, String name, boolean online_status, String passengerRideId, String phone_number, String userCarPlate, String role, String type_of_service, String profileImageUrl) {
+        this.approve = approve;
+        this.country_code = country_code;
+        this.email = email;
+        this.in_progress = in_progress;
+        this.name = name;
+        this.online_status = online_status;
+        this.passengerRideId = passengerRideId;
+        this.phone_number = phone_number;
+        this.userCarPlate = userCarPlate;
+        this.role = role;
+        this.type_of_service = type_of_service;
+        this.profileImageUrl = profileImageUrl;
     }
 
     public User(String approve, String country_code, String email, boolean in_progress, String name, boolean online_status, String passengerRideId, String phone_number, String userCarPlate, String role, String type_of_service) {
@@ -28,6 +44,7 @@ public class User {
         this.userCarPlate = userCarPlate;
         this.role = role;
         this.type_of_service = type_of_service;
+        this.profileImageUrl = "No Image";
     }
 
 
@@ -125,5 +142,13 @@ public class User {
 
     public void setType_of_service(String type_of_service) {
         this.type_of_service = type_of_service;
+    }
+
+    public String getProfileImageUrl() {
+        return profileImageUrl;
+    }
+
+    public void setProfileImageUrl(String profileImageUrl) {
+        this.profileImageUrl = profileImageUrl;
     }
 }
