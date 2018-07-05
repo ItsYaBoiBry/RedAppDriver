@@ -31,7 +31,6 @@ import android.view.Window;
 import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.firebase.geofire.GeoFire;
 import com.firebase.geofire.GeoLocation;
@@ -51,6 +50,9 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
@@ -148,8 +150,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     public void onLocationChanged(Location location) {
         //the detected location is given by the variable location in the signature
 
-        Toast.makeText(this, "Lat : " + location.getLatitude() + " Lng : " +
-                location.getLongitude(), Toast.LENGTH_SHORT).show();
+
         Log.d("tag", "onConnected lan long: " + location.getLatitude());
 
         DatabaseReference availableDriverRef = FirebaseDatabase.getInstance().getReference("availableDriver");
@@ -161,7 +162,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
             }
         });
         Log.d("", "onLocationChanged: latitude" + location.getLatitude() + "longitude:" + location.getLongitude());
-        Toast.makeText(MainActivity.this, "latitude " + location.getLatitude() + "longitude:" + location.getLongitude(), Toast.LENGTH_SHORT).show();
+
 
     }
 
@@ -186,16 +187,13 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
             public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
                 String uid = user.getUid();
                 String userKey = dataSnapshot.getKey();
-
                 if (userKey.equals(uid)) {
                     Log.e("DRIVER IN DISTRESS",String.valueOf(dataSnapshot.child("status").getValue()));
                     if(String.valueOf(dataSnapshot.child("status").getValue()).equals("pending")){
                         showDialog();
                     }
-
                 }
             }
-
             @Override
             public void onChildChanged(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
 
@@ -229,9 +227,6 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         String uid = intent.getStringExtra("uid");
         DatabaseReference ref = FirebaseDatabase.getInstance().getReference("availableDriver");
         GeoFire geofire = new GeoFire(ref);
-
-
-
 //        geofire.removeLocation(uid);
     }
 
@@ -305,7 +300,6 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                     DatabaseReference userid = userData.child(user.getUid());
                     DatabaseReference onlineStatus = userid.child("online_status");
                     onlineStatus.setValue(true);
-
 
                 } else {
                     onlineStatus.setText("offline\u2022 ");
@@ -447,9 +441,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
 
         } else {
             mLocation = null;
-            Toast.makeText(MainActivity.this,
-                    "Permission not granted to retrieve location info",
-                    Toast.LENGTH_SHORT).show();
+
             ActivityCompat.requestPermissions(MainActivity.this, new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION}, 2);
         }
     }
@@ -490,13 +482,10 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
 
 
         if (mLocation != null) {
-            Toast.makeText(this, "Lat : " + mLocation.getLatitude() +
-                            " Lng : " + mLocation.getLongitude(),
-                    Toast.LENGTH_SHORT).show();
+
             Log.d("tag", "onConnected lan long: " + mLocation.getLatitude());
         } else {
-            Toast.makeText(this, "Location not Detected",
-                    Toast.LENGTH_SHORT).show();
+
             Log.d("tag", "Location not Detected ");
         }
     }
@@ -606,6 +595,11 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                             Log.d("passenger request", "" + serviceType);
                             Log.e("passenger uid", passengerRequest.getPassengeruid());
 
+                            Calendar calendar = Calendar.getInstance();
+                            SimpleDateFormat mdformat = new SimpleDateFormat("HH:mm:ss");
+                            long ts = System.currentTimeMillis()/1000;
+                            String strDate =  mdformat.format(calendar.getTime());
+                            tripRef.child("trip_id").setValue(String.valueOf(ts));
                             tripRef.child("passenger_uid").setValue(passengerRequest.getPassengeruid());
                             tripRef.child("destinationName").setValue(destinationName);
                             tripRef.child("name").setValue(name);
@@ -614,8 +608,10 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                             tripRef.child("pickupName").setValue(pickupName);
                             tripRef.child("price").setValue(price);
                             tripRef.child("serviceType").setValue(serviceType);
+                            tripRef.child("status").setValue("pending");
                             tripRef.child("vehicleModel").setValue(vehicleModel);
                             tripRef.child("vehicleNumber").setValue(vehicleNumber);
+                            tripRef.child("tripStarted").setValue(strDate);
 
                         }
                     }

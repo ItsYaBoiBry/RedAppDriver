@@ -67,7 +67,9 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
 
@@ -147,6 +149,8 @@ public class TripProcess extends FragmentActivity implements OnMapReadyCallback,
                     String vehicleNumber = passengerRequest.getVehicleNumber();
                     Log.d("pasenger request", "" + serviceType);
                     destination.setText(destinationName);
+
+
                 }
 
             }
@@ -168,6 +172,47 @@ public class TripProcess extends FragmentActivity implements OnMapReadyCallback,
 
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        });
+        userPhone.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                DatabaseReference trip = firebaseDatabase.getReference().child("trip").child(firebaseUser.getUid());
+                trip.addValueEventListener(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                        DatabaseReference customerPhone = firebaseDatabase.getReference().child("user").child("passenger").child(String.valueOf(dataSnapshot.child("passenger_uid").getValue())).child("phone");
+                        customerPhone.addValueEventListener(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                                Intent intent = new Intent(Intent.ACTION_CALL, Uri.parse("tel:" + String.valueOf(dataSnapshot.getValue())));
+                                if (ActivityCompat.checkSelfPermission(TripProcess.this, android.Manifest.permission.CALL_PHONE) != PackageManager.PERMISSION_GRANTED) {
+                                    // TODO: Consider calling
+                                    //    ActivityCompat#requestPermissions
+                                    // here to request the missing permissions, and then overriding
+                                    //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+                                    //                                          int[] grantResults)
+                                    // to handle the case where the user grants the permission. See the documentation
+                                    // for ActivityCompat#requestPermissions for more details.
+                                    return;
+                                }
+                                startActivity(intent);
+                            }
+
+                            @Override
+                            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                            }
+                        });
+
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                    }
+                });
 
             }
         });
@@ -311,12 +356,58 @@ public class TripProcess extends FragmentActivity implements OnMapReadyCallback,
 
     public void confirmPickup() {
         DatabaseReference trip = firebaseDatabase.getReference().child("trip").child(firebaseUser.getUid());
-        trip.child("status").setValue("confirm pickup");
+        trip.child("status").setValue("confirm");
     }
 
     public void completedTrip() {
         DatabaseReference trip = firebaseDatabase.getReference().child("trip").child(firebaseUser.getUid());
-        trip.child("status").setValue("complete pickup");
+        DatabaseReference tripId = firebaseDatabase.getReference().child("trip").child(firebaseUser.getUid()).child("trip_id");
+        trip.child("status").setValue("completed");
+        tripId.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                DatabaseReference history = firebaseDatabase.getReference().child("history").child(String.valueOf(dataSnapshot.getValue()));
+                DatabaseReference passengerRequest = firebaseDatabase.getReference().child("passengerRequest").child(firebaseUser.getUid());
+                passengerRequest.removeValue();
+                trip.addValueEventListener(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                        history.child("destination_name").setValue(String.valueOf(dataSnapshot.child("destinationName").getValue()));
+                        history.child("pickup_name").setValue(String.valueOf(dataSnapshot.child("pickupName").getValue()));
+                        history.child("service_type").setValue(String.valueOf(dataSnapshot.child("serviceType").getValue()));
+                        history.child("passenger_name").setValue(String.valueOf(dataSnapshot.child("name").getValue()));
+                        history.child("passenger_uid").setValue(String.valueOf(dataSnapshot.child("passenger_uid").getValue()));
+                        history.child("driver_uid").setValue(firebaseUser.getUid());
+                        history.child("vehicle_model").setValue(String.valueOf(dataSnapshot.child("vehicleModel").getValue()));
+                        history.child("vehicle_number").setValue(String.valueOf(dataSnapshot.child("vehicleNumber").getValue()));
+                        history.child("price").setValue(String.valueOf(dataSnapshot.child("price").getValue()));
+
+                        Calendar calendar = Calendar.getInstance();
+                        SimpleDateFormat mdformat = new SimpleDateFormat("HH:mm:ss");
+                        String strDate = mdformat.format(calendar.getTime());
+                        history.child("transaction_time_start").setValue(String.valueOf(dataSnapshot.child("tripStarted").getValue()));
+                        history.child("transaction_time_complete").setValue(String.valueOf(strDate));
+                        history.child("rating").setValue(0);
+
+
+
+
+
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                    }
+                });
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        });
+
     }
 
     @Override

@@ -2,12 +2,22 @@ package sg.redapp.com.redappdriver.HomeFragments;
 
 
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
 
@@ -35,40 +45,6 @@ public class History extends Fragment {
         todaylist = view.findViewById(R.id.todaylist);
         previouslist = view.findViewById(R.id.previouslist);
 
-        ArrayList<String> transactionDetails = new ArrayList<>();
-        transactionDetails.add("Blk 279 tampines street 22");
-        transactionDetails.add("9.40 PM");
-        transactionDetails.add("Blk 279 tampines Avenue 7");
-        transactionDetails.add("10.45 PM");
-        transactionDetails.add("#49094");
-        transactionDetails.add("$264.50");
-        transactionDetails.add("Tow (Accident)");
-        transactionDetails.add("2018-19-09");
-
-        ArrayList<String> transactionDetails2 = new ArrayList<>();
-        transactionDetails2.add("Blk 279 tampines street 22");
-        transactionDetails2.add("9.40 PM");
-        transactionDetails2.add("Blk 279 tampines Avenue 7");
-        transactionDetails2.add("10.45 PM");
-        transactionDetails2.add("#49094");
-        transactionDetails2.add("$264.50");
-        transactionDetails2.add("Tow (Accident)");
-        transactionDetails2.add("2018-19-04");
-
-        ArrayList<String> transactionDetails3 = new ArrayList<>();
-        transactionDetails3.add("Blk 279 tampines street 22");
-        transactionDetails3.add("9.40 PM");
-        transactionDetails3.add("Blk 279 tampines Avenue 7");
-        transactionDetails3.add("10.45 PM");
-        transactionDetails3.add("#49094");
-        transactionDetails3.add("$264.50");
-        transactionDetails3.add("Tow (Accident)");
-        transactionDetails3.add("2018-19-08");
-
-        transactions.add(transactionDetails);
-        transactions.add(transactionDetails2);
-        transactions.add(transactionDetails3);
-
 
         for (int i =0; i < transactions.size();i++){
             ArrayList<String> transaction = transactions.get(i);
@@ -79,6 +55,41 @@ public class History extends Fragment {
                 previouslist.addView(initView(transaction));
             }
         }
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        DatabaseReference history = FirebaseDatabase.getInstance().getReference("history");
+
+        history.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                transactions = new ArrayList<>();
+                todaylist.removeAllViews();
+                for (DataSnapshot postSnapshot : dataSnapshot.getChildren()) {
+                    ArrayList<String> transactionDetails = new ArrayList<>();
+                    transactionDetails.add(String.valueOf(postSnapshot.child("pickup_name").getValue()));
+                    transactionDetails.add(String.valueOf(postSnapshot.child("transaction_time_start").getValue()));
+                    transactionDetails.add(String.valueOf(postSnapshot.child("destination_name").getValue()));
+                    transactionDetails.add(String.valueOf(postSnapshot.child("transaction_time_complete").getValue()));
+                    transactionDetails.add(String.valueOf(postSnapshot.getKey()));
+                    transactionDetails.add(String.valueOf(postSnapshot.child("price").getValue()));
+                    transactionDetails.add(String.valueOf(postSnapshot.child("service_type").getValue()));
+                    transactionDetails.add("0000-00-00");
+
+                    transactions.add(transactionDetails);
+                }
+
+                for (int i = 0; i < transactions.size(); i++) {
+                    ArrayList<String> qn = transactions.get(i);
+                    todaylist.addView(initView(qn));
+                }
+
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        });
+
         return view;
     }
 
@@ -99,7 +110,7 @@ public class History extends Fragment {
         toAddress.setText(details.get(2));
         toTime.setText(details.get(3));
         id.setText(details.get(4));
-        price.setText(details.get(5));
+        price.setText(String.format("$%s", details.get(5)));
         type.setText(details.get(6));
 
         return view;

@@ -13,7 +13,6 @@ public class User {
     private String role;
     private String type_of_service;
     private String profileImageUrl;
-
     public User() {
     }
 

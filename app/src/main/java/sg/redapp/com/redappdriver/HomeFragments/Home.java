@@ -30,6 +30,7 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 import java.net.URL;
 import java.util.Map;
@@ -144,7 +145,19 @@ public class Home extends Fragment {
 
     public void tempsetup() {
         referral.setText("AdSIF127");
-        credit.setText("$" + String.valueOf(2000.00));
+        DatabaseReference amount = FirebaseDatabase.getInstance().getReference("wallet").child(user.getUid()).child("value");
+        amount.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                Double value = dataSnapshot.getValue(Double.class);
+                credit.setText(String.format("$%s", String.valueOf(value)));
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        });
 
         //rating.setText(String.valueOf(4.2));
         user = firebaseAuth.getCurrentUser();
@@ -155,7 +168,9 @@ public class Home extends Fragment {
             public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
                 User userList = dataSnapshot.getValue(User.class);
                 String userKey = dataSnapshot.getKey();
-                if(userKey == user.getUid()){
+                assert userKey != null;
+                if(userKey.equals(user.getUid())){
+                    assert userList != null;
                     Log.d("user", "onChildAdded: User " + userList.getName());
                     name.setText(userList.getName());
                     Log.d("Gunjan","CAR PLATE VALUE "+ userList.getUserCarPlate()+"");

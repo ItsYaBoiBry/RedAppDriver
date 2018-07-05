@@ -45,8 +45,6 @@ public class Login extends AppCompatActivity {
         getEmail = findViewById(R.id.email);
         getPassword = findViewById(R.id.password);
         forgotPassword = findViewById(R.id.forgotpassword);
-        getEmail.setText("rx@gmail.com");
-        getPassword.setText("password");
         forgotPassword.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
