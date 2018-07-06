@@ -392,7 +392,6 @@ public class ViewProfile extends AppCompatActivity {
                                 driverRef.updateChildren(userUpdates);
                             }
                         });
-
                     }
                 });
 
@@ -415,8 +414,6 @@ public class ViewProfile extends AppCompatActivity {
 //            Bundle extras = data.getExtras();
 //            Bitmap imageBitmap = (Bitmap) extras.get("data");
 //            mImageView.setImageBitmap(imageBitmap);
-
-
 
             DatabaseReference driverRef = firebaseDatabase.getReference().child("user").child("driver").child((user.getUid()));
             Map<String, Object> userUpdates = new HashMap<>();

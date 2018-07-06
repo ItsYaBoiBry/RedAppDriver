@@ -5,6 +5,8 @@ import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.location.Address;
 import android.location.Geocoder;
@@ -48,6 +50,8 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.ChildEventListener;
@@ -56,6 +60,9 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageException;
+import com.google.firebase.storage.StorageReference;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -94,6 +101,7 @@ public class TripProcess extends FragmentActivity implements OnMapReadyCallback,
     public Location mLocation;
 
     private GoogleMap mMap;
+    String tripid;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -135,18 +143,10 @@ public class TripProcess extends FragmentActivity implements OnMapReadyCallback,
                 String userKey = dataSnapshot.getKey();
 //
                 if (userKey.equals(uid)) {
-                    PassengerRequest passengerRequest = dataSnapshot.getValue(PassengerRequest.class);
-                    String destinationName = passengerRequest.getDestinationName();
-                    String names = passengerRequest.getName();
+                    String destinationName = String.valueOf(dataSnapshot.child("destinationName").getValue());
+                    String names = String.valueOf(dataSnapshot.child("name").getValue());
                     name.setText(names);
-                    double pickupLatitude = passengerRequest.getPickupLatitude();
-                    double pickupLongitude = passengerRequest.getPickupLongitude();
-                    String pickupName = passengerRequest.getPickupName();
-
-                    double price = passengerRequest.getPrice();
-                    String serviceType = passengerRequest.getServiceType();
-                    String vehicleModel = passengerRequest.getVehicleModel();
-                    String vehicleNumber = passengerRequest.getVehicleNumber();
+                    String serviceType = String.valueOf(dataSnapshot.child("serviceType").getValue());
                     Log.d("pasenger request", "" + serviceType);
                     destination.setText(destinationName);
 
@@ -199,24 +199,17 @@ public class TripProcess extends FragmentActivity implements OnMapReadyCallback,
                                 }
                                 startActivity(intent);
                             }
-
                             @Override
                             public void onCancelled(@NonNull DatabaseError databaseError) {
-
                             }
                         });
-
                     }
-
                     @Override
                     public void onCancelled(@NonNull DatabaseError databaseError) {
-
                     }
                 });
-
             }
         });
-
         user.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -255,7 +248,6 @@ public class TripProcess extends FragmentActivity implements OnMapReadyCallback,
                 Log.e("LONGITUDE:", dataSnapshot.child("pickupLongtitude").getValue() + "");
                 Log.e("DESTINATION:", dataSnapshot.child("destinationName").getValue() + "");
                 Log.e("DESTINATION:", dataSnapshot.child("pickupName").getValue() + "");
-
 //                String pickupLatitude = (String)dataSnapshot.child("pickupLatitude").getValue();
 //                String pickupLongitude =(String)dataSnapshot.child("pickupLongitude").getValue();
 //                Log.e("latitude", pickupLatitude + "");
@@ -365,8 +357,8 @@ public class TripProcess extends FragmentActivity implements OnMapReadyCallback,
         trip.child("status").setValue("completed");
         tripId.addValueEventListener(new ValueEventListener() {
             @Override
-            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                DatabaseReference history = firebaseDatabase.getReference().child("history").child(String.valueOf(dataSnapshot.getValue()));
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                DatabaseReference history = firebaseDatabase.getReference().child("history").child(String.valueOf(snapshot.getValue()));
                 DatabaseReference passengerRequest = firebaseDatabase.getReference().child("passengerRequest").child(firebaseUser.getUid());
                 passengerRequest.removeValue();
                 trip.addValueEventListener(new ValueEventListener() {
@@ -377,6 +369,7 @@ public class TripProcess extends FragmentActivity implements OnMapReadyCallback,
                         history.child("service_type").setValue(String.valueOf(dataSnapshot.child("serviceType").getValue()));
                         history.child("passenger_name").setValue(String.valueOf(dataSnapshot.child("name").getValue()));
                         history.child("passenger_uid").setValue(String.valueOf(dataSnapshot.child("passenger_uid").getValue()));
+
                         history.child("driver_uid").setValue(firebaseUser.getUid());
                         history.child("vehicle_model").setValue(String.valueOf(dataSnapshot.child("vehicleModel").getValue()));
                         history.child("vehicle_number").setValue(String.valueOf(dataSnapshot.child("vehicleNumber").getValue()));
@@ -388,11 +381,20 @@ public class TripProcess extends FragmentActivity implements OnMapReadyCallback,
                         history.child("transaction_time_start").setValue(String.valueOf(dataSnapshot.child("tripStarted").getValue()));
                         history.child("transaction_time_complete").setValue(String.valueOf(strDate));
                         history.child("rating").setValue(0);
+                        
 
+                        completeTrip.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                SharedPreferenceStorage storages = new SharedPreferenceStorage(TripProcess.this);
+                                storages.StoreString("trip_status", "1");
+                                Log.e("TRIP_ID", String.valueOf(tripid));
+                                FirebaseDatabase.getInstance().getReference().child("trip").child(FirebaseAuth.getInstance().getCurrentUser().getUid()).removeValue();
+                                startActivity(new Intent(TripProcess.this, DropOff.class).putExtra("history_id",tripid));
 
-
-
-
+                                finish();
+                            }
+                        });
                     }
 
                     @Override
@@ -400,6 +402,7 @@ public class TripProcess extends FragmentActivity implements OnMapReadyCallback,
 
                     }
                 });
+                tripid = String.valueOf(snapshot.getValue());
             }
 
             @Override
@@ -425,10 +428,8 @@ public class TripProcess extends FragmentActivity implements OnMapReadyCallback,
                 break;
             case R.id.completetrip:
                 completedTrip();
-                SharedPreferenceStorage storage = new SharedPreferenceStorage(TripProcess.this);
-                storage.StoreString("trip_status", "1");
-                startActivity(new Intent(TripProcess.this, DropOff.class));
-                finish();
+
+
                 break;
             case R.id.messageUser:
                 startActivity(new Intent(TripProcess.this, Messages.class));
@@ -458,7 +459,6 @@ public class TripProcess extends FragmentActivity implements OnMapReadyCallback,
         Toast.makeText(TripProcess.this, "latitude " + location.getLatitude() + "longitude:" + location.getLongitude(), Toast.LENGTH_SHORT).show();
         LatLng currentlocation = new LatLng(location.getLatitude(), location.getLongitude());
         mMap.addMarker(new MarkerOptions().position(currentlocation).title(""));
-
     }
 
     @Override
