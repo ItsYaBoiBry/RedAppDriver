@@ -68,6 +68,8 @@ public class ViewProfile extends AppCompatActivity {
     CircleImageView civProfile;
     private Uri resultUri;
     private Bitmap resultBitmap;
+    String imageURL;
+
 
 
     @Override
@@ -185,7 +187,11 @@ public class ViewProfile extends AppCompatActivity {
                         String completeString = "";
                         for(int i = 0; i<arrayList.size(); i++){
                             Log.i("arraylist",arrayList.size()+"");
-                            completeString = completeString + arrayList.get(i);
+                            if(i == 0){
+                                completeString = completeString + arrayList.get(i);
+                            } else {
+                                completeString = completeString + "," + arrayList.get(i);
+                            }
                         }
                         serviceType.setText(completeString);
                         dialog.dismiss();
@@ -223,15 +229,42 @@ public class ViewProfile extends AppCompatActivity {
                         Log.i("profileImageUrl","Url:" + userList.getProfileImageUrl());
                         if(!userList.getProfileImageUrl().equalsIgnoreCase("No Image")){
                             Log.i("status called","set image");
+                            imageURL = userList.getProfileImageUrl();
                             Glide.with(ViewProfile.this).load(userList.getProfileImageUrl()).into(civProfile);
                         }
                     }
+
                 }
 
             }
 
             @Override
             public void onChildChanged(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+
+                User userList = dataSnapshot.getValue(User.class);
+                String userKey = dataSnapshot.getKey();
+                assert userKey != null;
+                if(userKey.equals(user.getUid())){
+                    Log.d("user", "onChildChanged: User " + userList.toString());
+                    firstName.setText(userList.getName());
+                    carPlate.setText(userList.getUserCarPlate());
+                    email.setText(userList.getEmail());
+                    countryCode.setText("+65");
+                    phone.setText(userList.getPhone_number());
+                    serviceType.setText(userList.getType_of_service());
+                    name.setText(String.format("%s", firstName.getText().toString()));
+                    rating.setText("4.2");
+                    vehicleNum.setText(userList.getUserCarPlate());
+                    if(dataSnapshot.hasChild("profileImageUrl")){
+                        Log.i("profileImageUrl","Url:" + userList.getProfileImageUrl());
+                        if(!userList.getProfileImageUrl().equalsIgnoreCase("No Image")){
+                            Log.i("status called","set image");
+                            imageURL = userList.getProfileImageUrl();
+                            Glide.with(getApplicationContext()).load(userList.getProfileImageUrl()).into(civProfile);
+
+                        }
+                    }
+                }
 
             }
 
@@ -284,10 +317,11 @@ public class ViewProfile extends AppCompatActivity {
         String updatePhoneNumber = phone.getText().toString();
         String updateTypeOfService = serviceType.getText().toString();
         String updateCarPlate = carPlate.getText().toString();
+
         DatabaseReference driverRef = firebaseDatabase.getReference().child("user").child("driver");
         DatabaseReference name = driverRef.child(user.getUid()).child("name");
 
-        User updateUser = new User(updateEmail,updateName,updatePhoneNumber,updateTypeOfService,updateCarPlate);
+        User updateUser = new User(updateEmail,updateName,updatePhoneNumber,updateTypeOfService,updateCarPlate,imageURL);
         driverRef.child(user.getUid()).setValue(updateUser);
     }
     public void Init(){
@@ -387,7 +421,7 @@ public class ViewProfile extends AppCompatActivity {
                             public void onSuccess(Uri uri) {
                                 Uri downloadUrl = uri;
                                 //Map newImage = new HashMap();
-                                Glide.with(ViewProfile.this).load(downloadUrl.toString()).into(civProfile);
+                                //Glide.with(ViewProfile.this).load(downloadUrl.toString()).into(civProfile);
                                 userUpdates.put("profileImageUrl",downloadUrl.toString());
                                 driverRef.updateChildren(userUpdates);
                             }

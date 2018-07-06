@@ -49,7 +49,8 @@ public class SignUp extends AppCompatActivity {
     LinearLayout loading;
     private FirebaseDatabase firebaseDatabase;
     private FirebaseUser user;
-//    ArrayList arrayList = new ArrayList<String>();
+
+    ArrayList arrayList = new ArrayList<String>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -130,22 +131,34 @@ public class SignUp extends AppCompatActivity {
                     @Override
                     public void onClick(View view) {
                         DatabaseReference driverRef = firebaseDatabase.getReference().child("user").child("driver");
-
-//                        if(cbTowAccident.isChecked()){
-//                            arrayList.add(cbTowAccident.getText().toString());
-//                        }else if(cbTowBreakdown.isChecked()){
-//                            arrayList.add(cbTowBreakdown.getText().toString());
-//                        }else if(cbTyreManding.isChecked()){
-//                            arrayList.add(cbTyreManding.getText().toString());
-//                        }else if(cbSpareTyreReplacement.isChecked()){
-//                            arrayList.add(cbSpareTyreReplacement.getText().toString());
-//                        }else if(cbBatteryJumpStart.isChecked()){
-//                            arrayList.add(cbBatteryJumpStart.getText().toString());
-//                        }else if(cbBatteryReplacement.isChecked()){
-//                            arrayList.add(cbBatteryReplacement.getText().toString());
-//                        }else if(cbOthers.isChecked()){
-//                            arrayList.add(cbOthers.getText().toString());
-//                        }
+                        arrayList.clear();
+                        if(cbTowAccident.isChecked()){
+                            arrayList.add(cbTowAccident.getText().toString());
+                        }
+                        if(cbTowBreakdown.isChecked()){
+                            arrayList.add(cbTowBreakdown.getText().toString());
+                        }
+                        if(cbTyreManding.isChecked()){
+                            arrayList.add(cbTyreManding.getText().toString());
+                        }
+                        if(cbSpareTyreReplacement.isChecked()){
+                            arrayList.add(cbSpareTyreReplacement.getText().toString());
+                        }
+                        if(cbBatteryJumpStart.isChecked()){
+                            arrayList.add(cbBatteryJumpStart.getText().toString());
+                        }
+                        if(cbBatteryReplacement.isChecked()){
+                            arrayList.add(cbBatteryReplacement.getText().toString());
+                        }
+                        if(cbOthers.isChecked()){
+                            arrayList.add(cbOthers.getText().toString());
+                        }
+                        String completeString = "";
+                        for(int i = 0; i<arrayList.size(); i++){
+                            Log.i("arraylist",arrayList.size()+"");
+                            completeString = completeString + arrayList.get(i);
+                        }
+                        getTypeOfService.setText(completeString);
                         dialog.dismiss();
                     }
                 });
