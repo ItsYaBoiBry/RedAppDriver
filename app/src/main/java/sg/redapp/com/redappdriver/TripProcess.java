@@ -75,6 +75,7 @@ import java.util.List;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 import sg.redapp.com.redappdriver.Classes.PassengerRequest;
+import sg.redapp.com.redappdriver.Classes.User;
 import sg.redapp.com.redappdriver.functions.HttpRequest;
 import sg.redapp.com.redappdriver.functions.SharedPreferenceStorage;
 
@@ -147,6 +148,26 @@ public class TripProcess extends FragmentActivity implements OnMapReadyCallback,
                     String serviceType = passengerRequest.getServiceType();
                     String vehicleModel = passengerRequest.getVehicleModel();
                     String vehicleNumber = passengerRequest.getVehicleNumber();
+
+                    final DatabaseReference passengerRef = FirebaseDatabase.getInstance().getReference("/user").child("passenger");
+                    passengerRef.child(passengerRequest.getPassengeruid()).addListenerForSingleValueEvent(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                            User currUserProfile = dataSnapshot.getValue(User.class);
+                            if(dataSnapshot.hasChild("profileImageUrl")){
+                                if(!currUserProfile.getProfileImageUrl().equalsIgnoreCase("No Image")){
+                                    Log.i("status called","set image");
+                                    Glide.with(getApplication()).load(currUserProfile.getProfileImageUrl()).into(profile);
+                                }
+                            }
+                        }
+
+                        @Override
+                        public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                        }
+                    });
+
                     Log.d("pasenger request", "" + serviceType);
                     destination.setText(destinationName);
 
@@ -224,10 +245,6 @@ public class TripProcess extends FragmentActivity implements OnMapReadyCallback,
             }
         });
 
-
-        Glide.with(this)
-                .load("https://images.pexels.com/photos/91227/pexels-photo-91227.jpeg?auto=compress&cs=tinysrgb&h=350")
-                .into(profile);
 
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);

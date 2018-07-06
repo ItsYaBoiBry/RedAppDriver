@@ -28,6 +28,7 @@ import com.google.firebase.database.ValueEventListener;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 import sg.redapp.com.redappdriver.Classes.PassengerRequest;
+import sg.redapp.com.redappdriver.Classes.User;
 
 public class TripDetail extends AppCompatActivity {
     Toolbar toolbar;
@@ -125,6 +126,27 @@ public class TripDetail extends AppCompatActivity {
                     pickupLocation.setText(pickupName);
                     destinationLocation.setText(destinationName);
                     tripAmount.setText(price+"");
+
+
+                    final DatabaseReference passengerRef = FirebaseDatabase.getInstance().getReference("/user").child("passenger");
+                    passengerRef.child(passengerRequest.getPassengeruid()).addListenerForSingleValueEvent(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                            User currUserProfile = dataSnapshot.getValue(User.class);
+                            if(dataSnapshot.hasChild("profileImageUrl")){
+                                if(!currUserProfile.getProfileImageUrl().equalsIgnoreCase("No Image")){
+                                    Log.i("status called","set image");
+                                    Glide.with(getApplication()).load(currUserProfile.getProfileImageUrl()).into(profile_image);
+                                }
+                            }
+                        }
+
+                        @Override
+                        public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                        }
+                    });
+
                 }
 
             }
