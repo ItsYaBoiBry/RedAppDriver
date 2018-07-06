@@ -148,16 +148,16 @@ public class TripProcess extends FragmentActivity implements OnMapReadyCallback,
                     String names = String.valueOf(dataSnapshot.child("name").getValue());
                     name.setText(names);
 
-                    double pickupLatitude = Double.valueOf(dataSnapshot.child("pickupLatitude").getValue().toString());
-                    double pickupLongitude = Double.valueOf(dataSnapshot.child("pickupLongitude").getValue().toString());;
-                    String pickupName = String.valueOf(dataSnapshot.child("pickupName").getValue());
-
-                    double price = Double.valueOf(dataSnapshot.child("price").getValue().toString());
-                    String vehicleModel = String.valueOf(dataSnapshot.child("vehicleModel").getValue());
-                    String vehicleNumber = String.valueOf(dataSnapshot.child("vehicleNumber").getValue());
+//                    double pickupLatitude = Double.parseDouble(dataSnapshot.child("pickupLatitude").getValue().toString());
+//                    double pickupLongitude = Double.parseDouble(dataSnapshot.child("pickupLongitude").getValue().toString());;
+//                    String pickupName = String.valueOf(dataSnapshot.child("pickupName").getValue());
+//
+//                    double price = Double.parseDouble(dataSnapshot.child("price").getValue().toString());
+//                    String vehicleModel = String.valueOf(dataSnapshot.child("vehicleModel").getValue());
+//                    String vehicleNumber = String.valueOf(dataSnapshot.child("vehicleNumber").getValue());
 
                     final DatabaseReference passengerRef = FirebaseDatabase.getInstance().getReference("/user").child("passenger");
-                    passengerRef.child(dataSnapshot.child("passengeruid").getValue().toString()).addListenerForSingleValueEvent(new ValueEventListener() {
+                    passengerRef.child(dataSnapshot.child("passenger_uid").getValue().toString()).addListenerForSingleValueEvent(new ValueEventListener() {
                         @Override
                         public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                             User currUserProfile = dataSnapshot.getValue(User.class);

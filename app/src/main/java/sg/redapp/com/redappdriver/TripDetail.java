@@ -127,7 +127,7 @@ public class TripDetail extends AppCompatActivity {
 
 
                     final DatabaseReference passengerRef = FirebaseDatabase.getInstance().getReference("/user").child("passenger");
-                    passengerRef.child(String.valueOf(dataSnapshot.child("passengeruid").getValue())).addListenerForSingleValueEvent(new ValueEventListener() {
+                    passengerRef.child(String.valueOf(dataSnapshot.child("passenger_uid").getValue())).addListenerForSingleValueEvent(new ValueEventListener() {
                         @Override
                         public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                             User currUserProfile = dataSnapshot.getValue(User.class);
