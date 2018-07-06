@@ -381,7 +381,7 @@ public class TripProcess extends FragmentActivity implements OnMapReadyCallback,
                         history.child("transaction_time_start").setValue(String.valueOf(dataSnapshot.child("tripStarted").getValue()));
                         history.child("transaction_time_complete").setValue(String.valueOf(strDate));
                         history.child("rating").setValue(0);
-                        
+
 
                         completeTrip.setOnClickListener(new View.OnClickListener() {
                             @Override
