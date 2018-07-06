@@ -101,7 +101,7 @@ public class TripDetail extends AppCompatActivity {
         });
 
 
-        DatabaseReference customerRequestRef = firebaseDatabase.getReference().child("passengerRequest");
+        DatabaseReference customerRequestRef = firebaseDatabase.getReference().child("trip");
         customerRequestRef.addChildEventListener(new ChildEventListener() {
             @Override
             public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
@@ -109,15 +109,13 @@ public class TripDetail extends AppCompatActivity {
                 String userKey = dataSnapshot.getKey();
 //
                 if(userKey.equals(uid)){
-                    PassengerRequest passengerRequest = dataSnapshot.getValue(PassengerRequest.class);
-                    String destinationName  = passengerRequest.getDestinationName();
-                    String name  = passengerRequest.getName();
-                    double pickupLatitude  = passengerRequest.getPickupLatitude();
-                    double pickupLongitude  = passengerRequest.getPickupLongitude();
-                    String  pickupName  = passengerRequest.getPickupName();
-                    double price  = passengerRequest.getPrice();
-                    String  serviceType  = passengerRequest.getServiceType();
-                    String vehicleNumber  = passengerRequest.getVehicleNumber();
+
+                    String destinationName  = String.valueOf(dataSnapshot.child("destinationName").getValue());
+                    String name  = String.valueOf(dataSnapshot.child("name").getValue());
+                    String  pickupName  = String.valueOf(dataSnapshot.child("pickupName").getValue());
+                    double price  = Double.parseDouble(String.valueOf(dataSnapshot.child("price").getValue()));
+                    String  serviceType  = String.valueOf(dataSnapshot.child("serviceType").getValue());
+                    String vehicleNumber  = String.valueOf(dataSnapshot.child("vehicleNumber").getValue());
                     Log.d("passenger request", "" + serviceType);
 
                     userName.setText(name);
@@ -129,7 +127,7 @@ public class TripDetail extends AppCompatActivity {
 
 
                     final DatabaseReference passengerRef = FirebaseDatabase.getInstance().getReference("/user").child("passenger");
-                    passengerRef.child(passengerRequest.getPassengeruid()).addListenerForSingleValueEvent(new ValueEventListener() {
+                    passengerRef.child(String.valueOf(dataSnapshot.child("passengeruid").getValue())).addListenerForSingleValueEvent(new ValueEventListener() {
                         @Override
                         public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                             User currUserProfile = dataSnapshot.getValue(User.class);
@@ -147,6 +145,7 @@ public class TripDetail extends AppCompatActivity {
                         }
                     });
 
+                    tripAmount.setText(String.format("$%s", price));
                 }
 
             }

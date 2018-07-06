@@ -17,25 +17,25 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical">
-            <TextView
-                android:layout_margin="10dp"
-                android:textSize="15sp"
-                android:textColor="@color/white"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/today"/>
+            <!--<TextView-->
+                <!--android:layout_margin="10dp"-->
+                <!--android:textSize="15sp"-->
+                <!--android:textColor="@color/white"-->
+                <!--android:layout_width="match_parent"-->
+                <!--android:layout_height="wrap_content"-->
+                <!--android:text="@string/today"/>-->
             <LinearLayout
                 android:id="@+id/todaylist"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical" />
-            <TextView
-                android:textSize="15sp"
-                android:layout_margin="10dp"
-                android:textColor="@color/white"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/past_week"/>
+            <!--<TextView-->
+                <!--android:textSize="15sp"-->
+                <!--android:layout_margin="10dp"-->
+                <!--android:textColor="@color/white"-->
+                <!--android:layout_width="match_parent"-->
+                <!--android:layout_height="wrap_content"-->
+                <!--android:text="@string/past_week"/>-->
             <LinearLayout
                 android:id="@+id/previouslist"
                 android:layout_width="match_parent"

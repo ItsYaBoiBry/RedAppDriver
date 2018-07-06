@@ -31,6 +31,7 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.storage.FirebaseStorage;
 
 import java.net.URL;
 import java.util.ArrayList;
@@ -179,6 +180,7 @@ public class Home extends Fragment {
                     Log.d("Gunjan","CAR PLATE VALUE "+ userList.getUserCarPlate()+"");
                     rating.setText(userList.getUserCarPlate());
                     Glide.with(getActivity()).load(userList.getProfileImageUrl()).into(profile);
+
                 }
 
             }

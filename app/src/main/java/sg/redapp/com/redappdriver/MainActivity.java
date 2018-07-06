@@ -256,7 +256,6 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
             Log.e("Online Status: ", "Online");
 
         } else {
-
             onlineStatus.setText("offline\u2022 ");
             onlineStatus.setTextColor(getResources().getColor(R.color.darkgrey));
             Log.e("Online Status: ", "Offline\u2022 ");
@@ -307,7 +306,6 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                     Log.e("Online Status: ", "Offline");
                     Intent intent = getIntent();
                     String uid = intent.getStringExtra("uid");
-                    availableDriverListRef.child(uid).removeValue();
                     user = firebaseAuth.getCurrentUser();
                     FirebaseDatabase database = FirebaseDatabase.getInstance();
                     DatabaseReference myRef = database.getReference("user");
@@ -573,7 +571,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
             @Override
             public void onClick(View v) {
                 customerRequestRef.child(user.getUid()).child("status").setValue("accepted");
-                firebaseDatabase.getReference().child("availableDriver").child(user.getUid()).removeValue();
+                firebaseDatabase.getReference().child("availableDriver").child(user.getUid()).child("available").setValue(false);
                 DatabaseReference tripRef = firebaseDatabase.getReference().child("trip").child(user.getUid());
                 customerRequestRef.addChildEventListener(new ChildEventListener() {
                     @Override
@@ -608,7 +606,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                             tripRef.child("pickupName").setValue(pickupName);
                             tripRef.child("price").setValue(price);
                             tripRef.child("serviceType").setValue(serviceType);
-                            tripRef.child("status").setValue("pending");
+                            tripRef.child("status").setValue("pn");
                             tripRef.child("vehicleModel").setValue(vehicleModel);
                             tripRef.child("vehicleNumber").setValue(vehicleNumber);
                             tripRef.child("tripStarted").setValue(strDate);
