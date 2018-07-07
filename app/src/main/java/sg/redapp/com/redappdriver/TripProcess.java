@@ -124,7 +124,6 @@ public class TripProcess extends FragmentActivity implements OnMapReadyCallback,
         navigate = findViewById(R.id.navigate);
         user = findViewById(R.id.user);
         name = findViewById(R.id.name);
-        name.setText("Bryan Low");
         message = findViewById(R.id.messageUser);
         phone = findViewById(R.id.userPhone);
         profile = findViewById(R.id.userimage);
@@ -141,12 +140,14 @@ public class TripProcess extends FragmentActivity implements OnMapReadyCallback,
             @Override
             public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
                 String uid = firebaseUser.getUid();
+                Log.e("FIREBASE USER UID", uid);
                 String userKey = dataSnapshot.getKey();
 
                 if (userKey.equals(uid)) {
                     String destinationName = String.valueOf(dataSnapshot.child("destinationName").getValue());
                     String names = String.valueOf(dataSnapshot.child("name").getValue());
-                    name.setText(names);
+
+
 
 //                    double pickupLatitude = Double.parseDouble(dataSnapshot.child("pickupLatitude").getValue().toString());
 //                    double pickupLongitude = Double.parseDouble(dataSnapshot.child("pickupLongitude").getValue().toString());;
@@ -157,28 +158,34 @@ public class TripProcess extends FragmentActivity implements OnMapReadyCallback,
 //                    String vehicleNumber = String.valueOf(dataSnapshot.child("vehicleNumber").getValue());
 
                     final DatabaseReference passengerRef = FirebaseDatabase.getInstance().getReference("/user").child("passenger");
-                    passengerRef.child(dataSnapshot.child("passenger_uid").getValue().toString()).addListenerForSingleValueEvent(new ValueEventListener() {
-                        @Override
-                        public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                            User currUserProfile = dataSnapshot.getValue(User.class);
-                            if(dataSnapshot.hasChild("profileImageUrl")){
-                                if(!currUserProfile.getProfileImageUrl().equalsIgnoreCase("No Image")){
-                                    Log.i("status called","set image");
-                                    Glide.with(getApplication()).load(currUserProfile.getProfileImageUrl()).into(profile);
+                    passengerRef.child(dataSnapshot.child("passenger_uid").getValue().toString());
+                    if(String.valueOf(passengerRef.getKey()).equals("null")){
+                        Log.e("TRIP PROCESS", dataSnapshot.child("passenger_uid").getValue().toString());
+                    }else{
+                        passengerRef.addListenerForSingleValueEvent(new ValueEventListener(){
+                            @Override
+                            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                                User currUserProfile = dataSnapshot.getValue(User.class);
+                                assert currUserProfile != null;
+                                name.setText(String.valueOf(currUserProfile.getName()));
+                                if (dataSnapshot.hasChild("profileImageUrl")) {
+                                    if (!currUserProfile.getProfileImageUrl().equalsIgnoreCase("No Image")) {
+                                        Log.i("status called", "set image");
+                                        Glide.with(getApplication()).load(currUserProfile.getProfileImageUrl()).into(profile);
+                                    }
                                 }
                             }
-                        }
 
-                        @Override
-                        public void onCancelled(@NonNull DatabaseError databaseError) {
+                            @Override
+                            public void onCancelled(@NonNull DatabaseError databaseError) {
 
-                        }
-                    });
+                            }
+                        });
 
-                    String serviceType = String.valueOf(dataSnapshot.child("serviceType").getValue());
-                    Log.d("pasenger request", "" + serviceType);
-                    destination.setText(destinationName);
-
+                        String serviceType = String.valueOf(dataSnapshot.child("serviceType").getValue());
+                        Log.d("pasenger request", "" + serviceType);
+                        destination.setText(destinationName);
+                    }
 
                 }
 
@@ -228,11 +235,13 @@ public class TripProcess extends FragmentActivity implements OnMapReadyCallback,
                                 }
                                 startActivity(intent);
                             }
+
                             @Override
                             public void onCancelled(@NonNull DatabaseError databaseError) {
                             }
                         });
                     }
+
                     @Override
                     public void onCancelled(@NonNull DatabaseError databaseError) {
                     }
@@ -272,15 +281,26 @@ public class TripProcess extends FragmentActivity implements OnMapReadyCallback,
                 Log.e("LATITUDE:", dataSnapshot.child("pickupLatitude").getValue() + "");
                 Log.e("LONGITUDE:", dataSnapshot.child("pickupLongtitude").getValue() + "");
                 Log.e("DESTINATION:", dataSnapshot.child("destinationName").getValue() + "");
-                Log.e("DESTINATION:", dataSnapshot.child("pickupName").getValue() + "");
+                Log.e("ORIGIN:", dataSnapshot.child("pickupName").getValue() + "");
 //                String pickupLatitude = (String)dataSnapshot.child("pickupLatitude").getValue();
 //                String pickupLongitude =(String)dataSnapshot.child("pickupLongitude").getValue();
 //                Log.e("latitude", pickupLatitude + "");
 //                Log.e("longitude", pickupLongitude + "");
-                LatLng location = GetLocationFromAddress(TripProcess.this, String.valueOf(dataSnapshot.child("destinationName").getValue()));
-                mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(location, 20.0f));
-                mMap.addMarker(new MarkerOptions().position(location).title(String.valueOf(dataSnapshot.child("destinationName").getValue())));
-                mMap.addMarker(new MarkerOptions().position(new LatLng(Double.parseDouble(String.valueOf(dataSnapshot.child("pickupLatitude").getValue())), Double.parseDouble(String.valueOf(dataSnapshot.child("pickupLongtitude").getValue())))).title(String.valueOf(dataSnapshot.child("pickupName").getValue())));
+                if(String.valueOf(dataSnapshot.child("destinationName").getValue() + "").equals("null")){
+                   Log.e("TRIP PROCESS", "DESTINATION NULL");
+                }else{
+                    LatLng location = GetLocationFromAddress(TripProcess.this, String.valueOf(dataSnapshot.child("destinationName").getValue() + ""));
+                    if(location!=null){
+                        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(location, 20.0f));
+                        mMap.addMarker(new MarkerOptions().position(location).title(String.valueOf(dataSnapshot.child("destinationName").getValue())));
+                        mMap.addMarker(new MarkerOptions().position(new LatLng(Double.parseDouble(String.valueOf(dataSnapshot.child("pickupLatitude").getValue())), Double.parseDouble(String.valueOf(dataSnapshot.child("pickupLongtitude").getValue())))).title(String.valueOf(dataSnapshot.child("pickupName").getValue())));
+                    }else{
+                        Log.e("TRIP PROCESS", "UNABLE TO FIND LOCATION");
+                    }
+
+                }
+
+
 //                mMap.addPolyline(new PolylineOptions()
 //                        .add(location, new LatLng(Double.parseDouble(String.valueOf(dataSnapshot.child("pickupLatitude").getValue())), Double.parseDouble(String.valueOf(dataSnapshot.child("pickupLongtitude").getValue()))))
 //                        .width(5)
@@ -345,8 +365,7 @@ public class TripProcess extends FragmentActivity implements OnMapReadyCallback,
         accept.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                DatabaseReference tripRef = firebaseDatabase.getReference().child("trip").child(firebaseUser.getUid());
-                tripRef.removeValue();
+
                 startLocationService();
                 DatabaseReference availableDriverRef = firebaseDatabase.getReference().child("availableDriver");
                 GeoFire geofire = new GeoFire(availableDriverRef);
@@ -380,15 +399,17 @@ public class TripProcess extends FragmentActivity implements OnMapReadyCallback,
         DatabaseReference trip = firebaseDatabase.getReference().child("trip").child(firebaseUser.getUid());
         DatabaseReference tripId = firebaseDatabase.getReference().child("trip").child(firebaseUser.getUid()).child("trip_id");
         trip.child("status").setValue("completed");
+
         tripId.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 DatabaseReference history = firebaseDatabase.getReference().child("history").child(String.valueOf(snapshot.getValue()));
                 DatabaseReference passengerRequest = firebaseDatabase.getReference().child("passengerRequest").child(firebaseUser.getUid());
-                passengerRequest.removeValue();
+
                 trip.addValueEventListener(new ValueEventListener() {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                        Log.e("DESTINATION PROCESS",String.valueOf(dataSnapshot.child("destinationName").getValue()));
                         history.child("destination_name").setValue(String.valueOf(dataSnapshot.child("destinationName").getValue()));
                         history.child("pickup_name").setValue(String.valueOf(dataSnapshot.child("pickupName").getValue()));
                         history.child("service_type").setValue(String.valueOf(dataSnapshot.child("serviceType").getValue()));
@@ -408,18 +429,19 @@ public class TripProcess extends FragmentActivity implements OnMapReadyCallback,
                         history.child("rating").setValue(0);
 
 
-                        completeTrip.setOnClickListener(new View.OnClickListener() {
-                            @Override
-                            public void onClick(View v) {
-                                SharedPreferenceStorage storages = new SharedPreferenceStorage(TripProcess.this);
-                                storages.StoreString("trip_status", "1");
-                                Log.e("TRIP_ID", String.valueOf(tripid));
-                                FirebaseDatabase.getInstance().getReference().child("trip").child(FirebaseAuth.getInstance().getCurrentUser().getUid()).removeValue();
-                                startActivity(new Intent(TripProcess.this, DropOff.class).putExtra("history_id",tripid));
+//                        completeTrip.setOnClickListener(new View.OnClickListener() {
+//                            @Override
+//                            public void onClick(View v) {
+//
+//                            }
+//                        });
+                        SharedPreferenceStorage storages = new SharedPreferenceStorage(TripProcess.this);
+                        storages.StoreString("trip_status", "1");
+                        Log.e("TRIP_ID", String.valueOf(tripid));
 
-                                finish();
-                            }
-                        });
+                        startActivity(new Intent(TripProcess.this, DropOff.class).putExtra("history_id", tripid));
+                        passengerRequest.removeValue();
+                        finish();
                     }
 
                     @Override
@@ -620,6 +642,7 @@ public class TripProcess extends FragmentActivity implements OnMapReadyCallback,
             currentLocation = new LatLng((double) (location.getLatitude()),
                     (double) (location.getLongitude()));
             Log.e("current Locale", String.valueOf(currentLocation));
+
 
         } catch (IOException e) {
             e.printStackTrace();

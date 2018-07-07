@@ -86,7 +86,7 @@
                     android:id="@+id/userimage"
                     android:layout_width="match_parent"
                     android:layout_height="150dp"
-                    android:src="@drawable/start_page_bg" />
+                    app:civ_circle_background_color="@color/lightgrey" />
 
                 <de.hdodenhof.circleimageview.CircleImageView
                     android:id="@+id/editImage"

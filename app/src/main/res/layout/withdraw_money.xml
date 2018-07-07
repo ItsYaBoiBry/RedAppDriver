@@ -20,7 +20,7 @@
         android:layout_height="wrap_content"
         android:layout_margin="20dp"
         android:padding="20dp"
-        android:hint="Enter amount you want to withdraw"
+        android:hint="Enter amount to withdraw"
         android:inputType="number" />
 
     <LinearLayout

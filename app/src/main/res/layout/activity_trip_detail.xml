@@ -48,7 +48,6 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="10dp"
                     android:gravity="center"
-                    android:text="Aqil Tahir"
                     android:id="@+id/userName"
                     android:textColor="@color/white"
                     android:textSize="20sp" />
@@ -57,7 +56,6 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:gravity="center"
-                    android:text="SQB898Y"
                     android:id="@+id/userCarPlate"
                     android:textColor="@color/lightgrey"
                     android:textSize="15sp" />
@@ -66,7 +64,6 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:gravity="center"
-                    android:text="Tow (Accident)"
                     android:id="@+id/typeOfService"
                     android:textColor="@color/lightgrey"
                     android:textSize="15sp" />
@@ -130,7 +127,6 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:id="@+id/pickupLocation"
-                            android:text="42 MacTaggart Road"
                             android:textSize="17sp" />
 
                         <LinearLayout
@@ -154,7 +150,6 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="42 MacTaggart Road"
                             android:id="@+id/destinationLocation"
                             android:textSize="17sp" />
                     </LinearLayout>
@@ -179,7 +174,6 @@
                             android:layout_alignParentLeft="true"
                             android:layout_alignParentStart="true"
                             android:gravity="center"
-                            android:text="$261.06"
                             android:id="@+id/tripAmount"
                             android:textSize="25sp" />
 

@@ -478,7 +478,6 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient,
                 mLocationRequest, this);
 
-
         if (mLocation != null) {
 
             Log.d("tag", "onConnected lan long: " + mLocation.getLatitude());
@@ -590,8 +589,8 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                             String serviceType = passengerRequest.getServiceType();
                             String vehicleModel = passengerRequest.getVehicleModel();
                             String vehicleNumber = passengerRequest.getVehicleNumber();
-                            Log.d("passenger request", "" + serviceType);
-                            Log.e("passenger uid", passengerRequest.getPassengeruid());
+                            Log.d("passenger request", "" + String.valueOf(serviceType));
+                            Log.e("passenger uid", String.valueOf(passengerRequest.getPassengeruid()));
 
                             Calendar calendar = Calendar.getInstance();
                             SimpleDateFormat mdformat = new SimpleDateFormat("HH:mm:ss");
@@ -606,7 +605,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                             tripRef.child("pickupName").setValue(pickupName);
                             tripRef.child("price").setValue(price);
                             tripRef.child("serviceType").setValue(serviceType);
-                            tripRef.child("status").setValue("pn");
+                            tripRef.child("status").setValue("pending");
                             tripRef.child("vehicleModel").setValue(vehicleModel);
                             tripRef.child("vehicleNumber").setValue(vehicleNumber);
                             tripRef.child("tripStarted").setValue(strDate);
@@ -650,7 +649,6 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                 dialog.dismiss();
             }
         });
-
         dialog.show();
 
     }

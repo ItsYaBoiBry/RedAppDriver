@@ -48,15 +48,13 @@
             android:orientation="horizontal">
             <de.hdodenhof.circleimageview.CircleImageView
                 android:layout_width="50dp"
-                android:layout_height="50dp"
-                android:src="@drawable/start_page_bg"/>
+                android:layout_height="50dp"/>
             <TextView
                 android:textSize="19sp"
                 android:layout_margin="10dp"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:id="@+id/userName"
-                android:text="Aqil Tahar"/>
+                android:id="@+id/userName"/>
         </LinearLayout>
         <TextView
             android:layout_width="wrap_content"
@@ -68,8 +66,7 @@
             android:textSize="17sp"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:id="@+id/origin"
-            android:text="45 Tai Send Avenue"/>
+            android:id="@+id/origin"/>
         <Space
             android:layout_width="wrap_content"
             android:layout_height="20dp" />
@@ -83,8 +80,7 @@
             android:textSize="17sp"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:id="@+id/destination"
-            android:text="45 Tai Send Avenue"/>
+            android:id="@+id/destination"/>
         <Space
             android:layout_width="wrap_content"
             android:layout_height="20dp" />
@@ -98,8 +94,7 @@
             android:textSize="17sp"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:id="@+id/pickupServiceType"
-            android:text="Tow (Accident)"/>
+            android:id="@+id/pickupServiceType"/>
         <Space
             android:layout_width="wrap_content"
             android:layout_height="20dp" />
@@ -113,8 +108,7 @@
             android:textSize="17sp"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:id="@+id/amount"
-            android:text="$234.00"/>
+            android:id="@+id/amount"/>
         <TextView
             android:layout_marginTop="10dp"
             android:layout_width="wrap_content"
@@ -126,8 +120,7 @@
             android:textSize="17sp"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:id="@+id/brand"
-            android:text="Honda"/>
+            android:id="@+id/brand"/>
         <LinearLayout
             android:layout_marginTop="30dp"
             android:weightSum="2"

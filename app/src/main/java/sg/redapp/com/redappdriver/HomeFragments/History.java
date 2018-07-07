@@ -64,18 +64,25 @@ public class History extends Fragment {
                 transactions = new ArrayList<>();
                 todaylist.removeAllViews();
                 for (DataSnapshot postSnapshot : dataSnapshot.getChildren()) {
-                    if(String.valueOf(postSnapshot.child("driver_uid").getValue()).equals(user.getUid())){
-                        ArrayList<String> transactionDetails = new ArrayList<>();
-                        transactionDetails.add(String.valueOf(postSnapshot.child("pickup_name").getValue()));
-                        transactionDetails.add(String.valueOf(postSnapshot.child("transaction_time_start").getValue()));
-                        transactionDetails.add(String.valueOf(postSnapshot.child("destination_name").getValue()));
-                        transactionDetails.add(String.valueOf(postSnapshot.child("transaction_time_complete").getValue()));
-                        transactionDetails.add(String.valueOf(postSnapshot.getKey()));
-                        transactionDetails.add(String.valueOf(postSnapshot.child("price").getValue()));
-                        transactionDetails.add(String.valueOf(postSnapshot.child("service_type").getValue()));
-                        transactionDetails.add("0000-00-00");
-                        transactions.add(transactionDetails);
+                    if(String.valueOf(postSnapshot.getKey()).equals("null")){
+                        Log.e("HISTORY", "HISTORY KEY IS NULL");
+                        Log.e("HISTORY ID NULL",String.valueOf(postSnapshot.getKey()));
+                    }else{
+                        Log.e("HISTORY ID",String.valueOf(postSnapshot.getKey()));
+                        if(String.valueOf(postSnapshot.child("driver_uid").getValue()).equals(user.getUid())){
+                            ArrayList<String> transactionDetails = new ArrayList<>();
+                            transactionDetails.add(String.valueOf(postSnapshot.child("pickup_name").getValue()));
+                            transactionDetails.add(String.valueOf(postSnapshot.child("transaction_time_start").getValue()));
+                            transactionDetails.add(String.valueOf(postSnapshot.child("destination_name").getValue()));
+                            transactionDetails.add(String.valueOf(postSnapshot.child("transaction_time_complete").getValue()));
+                            transactionDetails.add(String.valueOf(postSnapshot.getKey()));
+                            transactionDetails.add(String.valueOf(postSnapshot.child("price").getValue()));
+                            transactionDetails.add(String.valueOf(postSnapshot.child("service_type").getValue()));
+                            transactionDetails.add("0000-00-00");
+                            transactions.add(transactionDetails);
+                        }
                     }
+
 
                 }
 

@@ -76,6 +76,9 @@ public class Home extends Fragment {
         firebaseAuth = FirebaseAuth.getInstance();
         user = firebaseAuth.getCurrentUser();
 
+
+
+
         DatabaseReference customerRequestRef = firebaseDatabase.getReference().child("passengerRequest");
         customerRequestRef.addChildEventListener(new ChildEventListener() {
             @Override

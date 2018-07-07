@@ -127,7 +127,6 @@
                 android:layout_alignParentEnd="true"
                 android:layout_alignParentRight="true"
                 android:gravity="end"
-                android:text="Blk 279 tampines street 22 "
                 android:textAlignment="textEnd"
                 android:id="@+id/textViewDestination" />
 

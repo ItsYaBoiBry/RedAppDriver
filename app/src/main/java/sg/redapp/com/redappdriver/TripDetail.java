@@ -118,7 +118,7 @@ public class TripDetail extends AppCompatActivity {
                     String vehicleNumber  = String.valueOf(dataSnapshot.child("vehicleNumber").getValue());
                     Log.d("passenger request", "" + serviceType);
 
-                    userName.setText(name);
+
                     userCarPlate.setText(vehicleNumber);
                     typeOfService.setText(serviceType);
                     pickupLocation.setText(pickupName);
@@ -131,6 +131,8 @@ public class TripDetail extends AppCompatActivity {
                         @Override
                         public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                             User currUserProfile = dataSnapshot.getValue(User.class);
+                            assert currUserProfile != null;
+                            userName.setText(currUserProfile.getName());
                             if(dataSnapshot.hasChild("profileImageUrl")){
                                 if(!currUserProfile.getProfileImageUrl().equalsIgnoreCase("No Image")){
                                     Log.i("status called","set image");

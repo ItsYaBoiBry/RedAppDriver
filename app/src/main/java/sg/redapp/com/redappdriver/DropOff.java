@@ -15,6 +15,7 @@ import android.widget.ImageButton;
 import android.widget.TextView;
 
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -56,27 +57,43 @@ public class DropOff extends AppCompatActivity implements View.OnClickListener{
                 Log.e("SERVICE TYPE:",String.valueOf(dataSnapshot.child("service_type").getValue()));
                 Log.e("FROM TIME:",String.valueOf(dataSnapshot.child("transaction_time_start").getValue()));
                 Log.e("TO TIME:",String.valueOf(dataSnapshot.child("transaction_time_complete").getValue()));
-
-                price.setText(String.format("$%s", String.valueOf(dataSnapshot.child("price").getValue())));
-                pickupLocation.setText(String.valueOf(dataSnapshot.child("pickup_name").getValue()));
-                pickupTime.setText(String.valueOf(dataSnapshot.child("transaction_time_start").getValue()));
-                dropLocation.setText(String.valueOf(dataSnapshot.child("destination_name").getValue()));
-                dropTime.setText(String.valueOf(dataSnapshot.child("transaction_time_complete").getValue()));
-                transaction_id.setText(String.valueOf(dataSnapshot.getKey()));
-                serviceType.setText(String.valueOf(dataSnapshot.child("service_type").getValue()));
-
-                done.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-
+                if(String.valueOf(dataSnapshot.child("").getValue()).equals("null")){
+                    Log.e("DROPOFF DATA", "NULL");
+                    finish();
+                }else{
+                    Log.wtf("DROPOFF DATA", "NOT NULL");
+                    if(String.valueOf(dataSnapshot.child("price").getValue()).equals("null")){
+                        Log.e("PRICE DATA", "NULL");
                         finish();
+                    }else{
+                        price.setText(String.format("$%s", String.valueOf(dataSnapshot.child("price").getValue())));
+                        pickupLocation.setText(String.valueOf(dataSnapshot.child("pickup_name").getValue()));
+                        pickupTime.setText(String.valueOf(dataSnapshot.child("transaction_time_start").getValue()));
+                        dropLocation.setText(String.valueOf(dataSnapshot.child("destination_name").getValue()));
+                        dropTime.setText(String.valueOf(dataSnapshot.child("transaction_time_complete").getValue()));
+                        transaction_id.setText(String.valueOf(dataSnapshot.getKey()));
+                        serviceType.setText(String.valueOf(dataSnapshot.child("service_type").getValue()));
                     }
-                });
-
+                }
             }
 
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        });
+        done.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                FirebaseDatabase firebaseDatabase = FirebaseDatabase.getInstance();
+                FirebaseAuth firebaseAuth = FirebaseAuth.getInstance();
+                FirebaseUser firebaseUser = firebaseAuth.getCurrentUser();
+                DatabaseReference trip = firebaseDatabase.getReference().child("trip").child(firebaseUser.getUid());
+                trip.child("status").setValue("pending");
+//                if(trip.getKey()!=null){
+//                    trip.removeValue();
+//                }
+                finish();
 
             }
         });
